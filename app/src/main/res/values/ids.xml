@@ -20,6 +20,14 @@
     <item name="tv_profile_email" type="id" />
     <item name="btn_logout" type="id" />
 
+    <!-- Admin Notification Post IDs -->
+    <item name="btn_add_notification" type="id" />
+    <item name="et_notification_title" type="id" />
+    <item name="spinner_notification_type" type="id" />
+    <item name="et_notification_content" type="id" />
+    <item name="btn_cancel_notif" type="id" />
+    <item name="btn_send_notif" type="id" />
+
     <!-- Home Fragment IDs -->
     <item name="tv_greeting" type="id" />
     <item name="tv_today_date" type="id" />

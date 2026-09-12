@@ -39,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(v -> performLogin());
 
         btnSkipLogin.setOnClickListener(v -> {
-            prefManager.saveUserSession("khach@student.tdmu.edu.vn", "Sinh viên Khách");
+            prefManager.saveUserSession("khach@student.tdmu.edu.vn", "Sinh viên Khách", "student");
             Toast.makeText(this, "Đã truy cập với chế độ Khách", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, MainActivity.class));
             finish();
@@ -55,18 +55,22 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Kiểm tra định dạng Email sinh viên TDMU
         if (!email.endsWith("@student.tdmu.edu.vn") && !email.endsWith("@tdmu.edu.vn")) {
-            Toast.makeText(this, "Vui lòng sử dụng Email trường cấp (@student.tdmu.edu.vn)!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Vui lòng sử dụng Email trường cấp (@student.tdmu.edu.vn hoặc @tdmu.edu.vn)!", Toast.LENGTH_LONG).show();
             return;
         }
 
-        // Tách lấy Tên sinh viên từ Email (ví dụ: 21111000@student.tdmu.edu.vn -> Sinh viên 21111000)
-        String mssv = email.split("@")[0];
-        String studentName = "Sinh viên " + mssv;
+        // Xác định vai trò
+        String role = "student";
+        if (email.equalsIgnoreCase("admin@tdmu.edu.vn") || (!email.contains("student") && email.endsWith("@tdmu.edu.vn"))) {
+            role = "admin";
+        }
 
-        prefManager.saveUserSession(email, studentName);
-        Toast.makeText(this, "Đăng nhập thành công! Chào mừng " + studentName, Toast.LENGTH_SHORT).show();
+        String username = email.split("@")[0];
+        String displayName = role.equals("admin") ? "Quản trị viên (" + username + ")" : "Sinh viên " + username;
+
+        prefManager.saveUserSession(email, displayName, role);
+        Toast.makeText(this, "Đăng nhập thành công với vai trò " + (role.equals("admin") ? "ADMIN" : "SINH VIÊN"), Toast.LENGTH_SHORT).show();
 
         startActivity(new Intent(this, MainActivity.class));
         finish();
