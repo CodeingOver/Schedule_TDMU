@@ -18,16 +18,18 @@ import com.example.schedule_tdmu.adapter.LichHocAdapter;
 import com.example.schedule_tdmu.adapter.ThongBaoAdapter;
 import com.example.schedule_tdmu.model.LichHoc;
 import com.example.schedule_tdmu.model.ThongBao;
+import com.example.schedule_tdmu.utils.SharedPrefManager;
 
 import java.util.List;
 
 public class HomeFragment extends Fragment {
 
     private DatabaseHelper dbHelper;
+    private SharedPrefManager prefManager;
     private RecyclerView rvTodaySchedule, rvRecentNotifications;
     private LichHocAdapter lichHocAdapter;
     private ThongBaoAdapter thongBaoAdapter;
-    private TextView tvNextClassTitle, tvNextClassDetail;
+    private TextView tvGreeting, tvNextClassTitle, tvNextClassDetail;
 
     @Nullable
     @Override
@@ -36,10 +38,16 @@ public class HomeFragment extends Fragment {
 
         if (getContext() != null) {
             dbHelper = new DatabaseHelper(getContext());
+            prefManager = new SharedPrefManager(getContext());
         }
 
+        tvGreeting = view.findViewById(R.id.tv_greeting);
         tvNextClassTitle = view.findViewById(R.id.tv_next_class_title);
         tvNextClassDetail = view.findViewById(R.id.tv_next_class_detail);
+
+        if (prefManager != null) {
+            tvGreeting.setText("Xin chào, " + prefManager.getStudentName() + " 👋");
+        }
 
         rvTodaySchedule = view.findViewById(R.id.rv_today_schedule);
         rvRecentNotifications = view.findViewById(R.id.rv_recent_notifications);

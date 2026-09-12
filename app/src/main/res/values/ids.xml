@@ -9,6 +9,17 @@
     <item name="nav_scan" type="id" />
     <item name="nav_notifications" type="id" />
 
+    <!-- Login Activity IDs -->
+    <item name="et_login_email" type="id" />
+    <item name="et_login_password" type="id" />
+    <item name="btn_login" type="id" />
+    <item name="btn_skip_login" type="id" />
+
+    <!-- Profile & Logout IDs -->
+    <item name="tv_profile_name" type="id" />
+    <item name="tv_profile_email" type="id" />
+    <item name="btn_logout" type="id" />
+
     <!-- Home Fragment IDs -->
     <item name="tv_greeting" type="id" />
     <item name="tv_today_date" type="id" />
