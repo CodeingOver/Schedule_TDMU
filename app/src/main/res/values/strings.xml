@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">Schedule_TDMU</string>
+    <string name="app_name">TDMU Schedule</string>
+    <string name="nav_home">Trang chủ</string>
+    <string name="nav_schedule">Thời khóa biểu</string>
+    <string name="nav_scan">Quét TKB</string>
+    <string name="nav_notifications">Thông báo</string>
 </resources>

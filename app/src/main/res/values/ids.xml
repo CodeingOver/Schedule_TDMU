@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Main & Navigation IDs -->
+    <item name="main" type="id" />
+    <item name="fragment_container" type="id" />
+    <item name="bottom_navigation" type="id" />
+    <item name="nav_home" type="id" />
+    <item name="nav_schedule" type="id" />
+    <item name="nav_scan" type="id" />
+    <item name="nav_notifications" type="id" />
+
+    <!-- Home Fragment IDs -->
+    <item name="tv_greeting" type="id" />
+    <item name="tv_today_date" type="id" />
+    <item name="card_next_class" type="id" />
+    <item name="tv_next_class_title" type="id" />
+    <item name="tv_next_class_detail" type="id" />
+    <item name="tv_next_class_status" type="id" />
+    <item name="rv_today_schedule" type="id" />
+    <item name="rv_recent_notifications" type="id" />
+
+    <!-- Schedule Fragment IDs -->
+    <item name="tab_layout" type="id" />
+    <item name="rv_schedule_list" type="id" />
+    <item name="fab_add_schedule" type="id" />
+
+    <!-- Scan Fragment IDs -->
+    <item name="img_preview" type="id" />
+    <item name="btn_pick_gallery" type="id" />
+    <item name="btn_take_photo" type="id" />
+    <item name="btn_start_scan" type="id" />
+
+    <!-- Notification Fragment IDs -->
+    <item name="rv_all_notifications" type="id" />
+
+    <!-- Dialog Add/Edit Schedule IDs -->
+    <item name="tv_dialog_title" type="id" />
+    <item name="et_ma_mon" type="id" />
+    <item name="et_ten_mon" type="id" />
+    <item name="spinner_thu" type="id" />
+    <item name="et_tiet_bat_dau" type="id" />
+    <item name="et_so_tiet" type="id" />
+    <item name="et_phong_hoc" type="id" />
+    <item name="et_giang_vien" type="id" />
+    <item name="btn_cancel" type="id" />
+    <item name="btn_save" type="id" />
+
+    <!-- Item Lich Hoc IDs -->
+    <item name="view_color_strip" type="id" />
+    <item name="tv_ten_mon" type="id" />
+    <item name="tv_ma_mon" type="id" />
+    <item name="tv_phong_giang_vien" type="id" />
+    <item name="tv_tiet_hoc" type="id" />
+    <item name="tv_thu" type="id" />
+
+    <!-- Item Lich Thi IDs -->
+    <item name="tv_ten_mon_thi" type="id" />
+    <item name="tv_hinh_thuc_thi" type="id" />
+    <item name="tv_ngay_gio_thi" type="id" />
+    <item name="tv_phong_sbd" type="id" />
+    <item name="tv_ghi_chu" type="id" />
+
+    <!-- Item Thong Bao IDs -->
+    <item name="card_thong_bao" type="id" />
+    <item name="tv_tieu_de" type="id" />
+    <item name="tv_badge_da_doc" type="id" />
+    <item name="tv_noi_dung" type="id" />
+    <item name="tv_loai_thong_bao" type="id" />
+    <item name="tv_ngay_dang" type="id" />
+</resources>
