@@ -28,9 +28,8 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Khởi tạo DB & tạo dữ liệu mẫu nếu chưa có
+        // Khởi tạo DatabaseHelper
         DatabaseHelper dbHelper = new DatabaseHelper(this);
-        dbHelper.insertSampleDataIfEmpty();
 
         // Load fragment mặc định (HomeFragment)
         if (savedInstanceState == null) {

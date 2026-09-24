@@ -22,6 +22,7 @@ import com.example.schedule_tdmu.R;
 import com.example.schedule_tdmu.adapter.LichHocAdapter;
 import com.example.schedule_tdmu.adapter.LichThiAdapter;
 import com.example.schedule_tdmu.model.LichHoc;
+import com.example.schedule_tdmu.model.LichThi;
 import com.example.schedule_tdmu.model.MonHoc;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
@@ -79,11 +80,66 @@ public class ScheduleFragment extends Fragment {
 
         if (currentTab == 0) {
             List<LichHoc> listLichHoc = dbHelper.getAllLichHocWithMonHoc();
-            lichHocAdapter = new LichHocAdapter(listLichHoc);
+            lichHocAdapter = new LichHocAdapter(listLichHoc, new LichHocAdapter.OnLichHocClickListener() {
+                @Override
+                public void onItemClick(LichHoc lichHoc) {
+                    showDeleteLichHocDialog(lichHoc);
+                }
+
+                @Override
+                public void onItemLongClick(LichHoc lichHoc) {
+                    showDeleteLichHocDialog(lichHoc);
+                }
+            });
             rvScheduleList.setAdapter(lichHocAdapter);
         } else {
-            lichThiAdapter = new LichThiAdapter(dbHelper.getAllLichThiWithMonHoc());
+            List<LichThi> listLichThi = dbHelper.getAllLichThiWithMonHoc();
+            lichThiAdapter = new LichThiAdapter(listLichThi, new LichThiAdapter.OnLichThiClickListener() {
+                @Override
+                public void onItemClick(LichThi lichThi) {
+                    showDeleteLichThiDialog(lichThi);
+                }
+
+                @Override
+                public void onItemLongClick(LichThi lichThi) {
+                    showDeleteLichThiDialog(lichThi);
+                }
+            });
             rvScheduleList.setAdapter(lichThiAdapter);
+        }
+    }
+
+    private void showDeleteLichHocDialog(LichHoc item) {
+        if (getContext() == null) return;
+        new AlertDialog.Builder(getContext())
+                .setTitle("🗑️ Xóa Lịch Học")
+                .setMessage("Bạn có chắc chắn muốn xóa môn [" + item.getTenMon() + "] khỏi thời khóa biểu không?")
+                .setPositiveButton("Xóa", (dialog, which) -> {
+                    dbHelper.deleteLichHoc(item.getId());
+                    Toast.makeText(getContext(), "Đã xóa môn " + item.getTenMon() + "!", Toast.LENGTH_SHORT).show();
+                    loadScheduleData();
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void showDeleteLichThiDialog(LichThi item) {
+        if (getContext() == null) return;
+        new AlertDialog.Builder(getContext())
+                .setTitle("🗑️ Xóa Lịch Thi")
+                .setMessage("Bạn có chắc chắn muốn xóa lịch thi môn [" + item.getTenMon() + "] không?")
+                .setPositiveButton("Xóa", (dialog, which) -> {
+                    SQLiteOpenHelper_deleteLichThi(item.getId());
+                    Toast.makeText(getContext(), "Đã xóa lịch thi môn " + item.getTenMon() + "!", Toast.LENGTH_SHORT).show();
+                    loadScheduleData();
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void SQLiteOpenHelper_deleteLichThi(int id) {
+        if (dbHelper != null) {
+            dbHelper.getWritableDatabase().delete(DatabaseHelper.TABLE_LICH_THI, DatabaseHelper.COL_LICH_THI_ID + " = ?", new String[]{String.valueOf(id)});
         }
     }
 

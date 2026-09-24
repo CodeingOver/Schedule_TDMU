@@ -69,6 +69,9 @@ public class HomeFragment extends Fragment {
             LichHoc nextClass = todayList.get(0);
             tvNextClassTitle.setText(nextClass.getTenMon());
             tvNextClassDetail.setText("Tiết " + nextClass.getTietBatDau() + " | Phòng " + nextClass.getPhongHoc());
+        } else {
+            tvNextClassTitle.setText("Chưa có lịch học tiếp theo");
+            tvNextClassDetail.setText("Hãy tận hưởng thời gian nghỉ ngơi nhé!");
         }
 
         lichHocAdapter = new LichHocAdapter(todayList);

@@ -17,9 +17,20 @@ import java.util.List;
 public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocViewHolder> {
 
     private List<LichHoc> listLichHoc;
+    private OnLichHocClickListener clickListener;
+
+    public interface OnLichHocClickListener {
+        void onItemClick(LichHoc lichHoc);
+        void onItemLongClick(LichHoc lichHoc);
+    }
 
     public LichHocAdapter(List<LichHoc> listLichHoc) {
         this.listLichHoc = listLichHoc;
+    }
+
+    public LichHocAdapter(List<LichHoc> listLichHoc, OnLichHocClickListener clickListener) {
+        this.listLichHoc = listLichHoc;
+        this.clickListener = clickListener;
     }
 
     public void updateData(List<LichHoc> newList) {
@@ -58,6 +69,19 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
             } catch (Exception ignored) {
             }
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (clickListener != null) {
+                clickListener.onItemClick(item);
+            }
+        });
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if (clickListener != null) {
+                clickListener.onItemLongClick(item);
+            }
+            return true;
+        });
     }
 
     @Override

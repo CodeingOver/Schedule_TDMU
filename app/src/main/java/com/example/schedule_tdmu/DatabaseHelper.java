@@ -127,6 +127,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // ==========================================
+    // XÓA TẤT CẢ DỮ LIỆU BẢNG (ĐỂ DÙNG DỮ LIỆU THẬT)
+    // ==========================================
+    public void clearAllTables() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_LICH_THI, null, null);
+        db.delete(TABLE_LICH_HOC, null, null);
+        db.delete(TABLE_MON_HOC, null, null);
+        db.delete(TABLE_THONG_BAO, null, null);
+    }
+
+    // ==========================================
     // 1. QUẢN LÝ MÔN HỌC (CRUD)
     // ==========================================
 
@@ -395,29 +406,5 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return count;
-    }
-
-    // ==========================================
-    // 5. DỮ LIỆU MẪU BAN ĐẦU (DÙNG ĐỂ TEST)
-    // ==========================================
-
-    public void insertSampleDataIfEmpty() {
-        if (getAllMonHoc().isEmpty()) {
-            long id1 = insertMonHoc(new MonHoc("LTTBDD", "Lập trình thiết bị di động", 3, "#1E88E5"));
-            long id2 = insertMonHoc(new MonHoc("CSDL", "Cơ sở dữ liệu", 3, "#43A047"));
-            long id3 = insertMonHoc(new MonHoc("MMT", "Mạng máy tính", 2, "#FB8C00"));
-
-            // Thứ 2 (2): Tiết 1-3, Môn Lập trình di động, Phòng I.201
-            insertLichHoc(new LichHoc((int) id1, 2, 1, 3, "I.201", "ThS. Nguyễn Văn A", 1, "2024-2025", "1-15"));
-            // Thứ 4 (4): Tiết 7-9, Môn Cơ sở dữ liệu, Phòng B.102
-            insertLichHoc(new LichHoc((int) id2, 4, 7, 3, "B.102", "TS. Trần Thị B", 1, "2024-2025", "1-15"));
-
-            // Lịch thi mẫu
-            insertLichThi(new LichThi((int) id1, "2024-12-20 08:00", "I.201", "Tự luận", "SBD123", "Mang theo thẻ sinh viên"));
-
-            // Thông báo mẫu
-            insertThongBao(new ThongBao("Thông báo nghỉ học", "Lớp Lập trình thiết bị di động nghỉ học ngày 15/10.", "2024-10-12", "Học tập"));
-            insertThongBao(new ThongBao("Đóng học phí HK1", "Hạn chót đóng học phí học kỳ 1 là ngày 30/10/2024.", "2024-10-01", "Chung"));
-        }
     }
 }

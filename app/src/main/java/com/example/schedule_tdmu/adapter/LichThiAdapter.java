@@ -16,9 +16,20 @@ import java.util.List;
 public class LichThiAdapter extends RecyclerView.Adapter<LichThiAdapter.LichThiViewHolder> {
 
     private List<LichThi> listLichThi;
+    private OnLichThiClickListener clickListener;
+
+    public interface OnLichThiClickListener {
+        void onItemClick(LichThi lichThi);
+        void onItemLongClick(LichThi lichThi);
+    }
 
     public LichThiAdapter(List<LichThi> listLichThi) {
         this.listLichThi = listLichThi;
+    }
+
+    public LichThiAdapter(List<LichThi> listLichThi, OnLichThiClickListener clickListener) {
+        this.listLichThi = listLichThi;
+        this.clickListener = clickListener;
     }
 
     public void updateData(List<LichThi> newList) {
@@ -51,6 +62,19 @@ public class LichThiAdapter extends RecyclerView.Adapter<LichThiAdapter.LichThiV
         } else {
             holder.tvGhiChu.setVisibility(View.GONE);
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (clickListener != null) {
+                clickListener.onItemClick(item);
+            }
+        });
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if (clickListener != null) {
+                clickListener.onItemLongClick(item);
+            }
+            return true;
+        });
     }
 
     @Override
