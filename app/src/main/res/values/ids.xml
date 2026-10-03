@@ -1,13 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Main & Navigation IDs -->
+    <!-- Main & Header Bar IDs -->
     <item name="main" type="id" />
+    <item name="header_bar" type="id" />
+    <item name="tv_header_subtitle" type="id" />
+    <item name="tv_week_badge" type="id" />
+    <item name="btn_header_bell" type="id" />
+    <item name="btn_header_profile" type="id" />
     <item name="fragment_container" type="id" />
+    <item name="bottom_navigation_card" type="id" />
     <item name="bottom_navigation" type="id" />
     <item name="nav_home" type="id" />
     <item name="nav_schedule" type="id" />
     <item name="nav_scan" type="id" />
     <item name="nav_notifications" type="id" />
+    <item name="nav_profile" type="id" />
+
+    <!-- Schedule Fragment Scan & Import IDs -->
+    <item name="schedule_top_bar" type="id" />
+    <item name="btn_scan_schedule_top" type="id" />
+    <item name="btn_import_excel" type="id" />
+
+    <!-- Schedule Fragment Week Bar & Week Strip IDs -->
+    <item name="layout_week_bar" type="id" />
+    <item name="btn_prev_week" type="id" />
+    <item name="spinner_week" type="id" />
+    <item name="btn_next_week" type="id" />
+    <item name="rv_week_strip" type="id" />
+
+    <!-- Week Strip Chip Item IDs -->
+    <item name="card_day_chip" type="id" />
+    <item name="tv_chip_day_name" type="id" />
+    <item name="tv_chip_date_num" type="id" />
+    <item name="view_has_class_dot" type="id" />
+
+    <!-- Multi-selection Action Bar IDs -->
+    <item name="layout_selection_bar" type="id" />
+    <item name="tv_selected_count" type="id" />
+    <item name="btn_select_all" type="id" />
+    <item name="btn_delete_selected" type="id" />
+    <item name="btn_cancel_selection" type="id" />
 
     <!-- Login Activity IDs -->
     <item name="et_login_email" type="id" />
@@ -15,10 +47,16 @@
     <item name="btn_login" type="id" />
     <item name="btn_skip_login" type="id" />
 
-    <!-- Profile & Logout IDs -->
+    <!-- Profile Fragment & Logout IDs -->
     <item name="tv_profile_name" type="id" />
     <item name="tv_profile_email" type="id" />
+    <item name="tv_profile_mssv" type="id" />
+    <item name="tv_profile_role" type="id" />
+    <item name="tv_profile_gpa" type="id" />
+    <item name="tv_profile_credits" type="id" />
+    <item name="tv_profile_drl" type="id" />
     <item name="btn_logout" type="id" />
+    <item name="btn_change_password" type="id" />
 
     <!-- Admin Notification Post IDs -->
     <item name="btn_add_notification" type="id" />
@@ -28,13 +66,33 @@
     <item name="btn_cancel_notif" type="id" />
     <item name="btn_send_notif" type="id" />
 
+    <!-- Notification Screen HTML Design Elements -->
+    <item name="btn_mark_all_read" type="id" />
+    <item name="chip_filter_all" type="id" />
+    <item name="chip_filter_urgent" type="id" />
+    <item name="chip_filter_deadline" type="id" />
+    <item name="chip_filter_faculty" type="id" />
+    <item name="card_urgent_alert" type="id" />
+    <item name="btn_map_location" type="id" />
+    <item name="btn_refresh_feed" type="id" />
+    <item name="btnViewLocation" type="id" />
+    <item name="btnGotIt" type="id" />
+
+    <!-- Item Feed Notification IDs -->
+    <item name="viewCategoryStrip" type="id" />
+    <item name="tvCategoryBadge" type="id" />
+    <item name="tvUnreadDot" type="id" />
+    <item name="tvTimeAgo" type="id" />
+    <item name="tvTitle" type="id" />
+    <item name="tvContent" type="id" />
+
     <!-- Home Fragment IDs -->
     <item name="tv_greeting" type="id" />
     <item name="tv_today_date" type="id" />
-    <item name="card_next_class" type="id" />
-    <item name="tv_next_class_title" type="id" />
-    <item name="tv_next_class_detail" type="id" />
-    <item name="tv_next_class_status" type="id" />
+    <item name="card_today_summary" type="id" />
+    <item name="tv_summary_title" type="id" />
+    <item name="tv_summary_detail" type="id" />
+    <item name="tv_summary_badge" type="id" />
     <item name="rv_today_schedule" type="id" />
     <item name="rv_recent_notifications" type="id" />
 
@@ -65,6 +123,12 @@
     <item name="btn_save" type="id" />
 
     <!-- Item Lich Hoc IDs -->
+    <item name="card_item_lich" type="id" />
+    <item name="cb_select" type="id" />
+    <item name="tv_status_badge" type="id" />
+    <item name="tv_buoi_ca_badge" type="id" />
+    <item name="tv_phong_badge" type="id" />
+    <item name="tv_giang_vien" type="id" />
     <item name="view_color_strip" type="id" />
     <item name="tv_ten_mon" type="id" />
     <item name="tv_ma_mon" type="id" />
@@ -81,6 +145,7 @@
 
     <!-- Item Thong Bao IDs -->
     <item name="card_thong_bao" type="id" />
+    <item name="view_notif_strip" type="id" />
     <item name="tv_tieu_de" type="id" />
     <item name="tv_badge_da_doc" type="id" />
     <item name="tv_noi_dung" type="id" />

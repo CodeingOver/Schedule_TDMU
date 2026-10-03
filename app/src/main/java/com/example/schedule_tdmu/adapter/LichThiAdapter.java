@@ -50,7 +50,7 @@ public class LichThiAdapter extends RecyclerView.Adapter<LichThiAdapter.LichThiV
 
         holder.tvTenMonThi.setText(item.getTenMon() != null ? item.getTenMon() : "Môn thi");
         holder.tvHinhThucThi.setText(item.getHinhThucThi() != null ? item.getHinhThucThi() : "Thi");
-        holder.tvNgayGioThi.setText("📅 " + (item.getNgayGioThi() != null ? item.getNgayGioThi() : "---"));
+        holder.tvNgayGioThi.setText(item.getNgayGioThi() != null ? item.getNgayGioThi() : "---");
 
         String phongSbd = "Phòng: " + (item.getPhongThi() != null ? item.getPhongThi() : "---") +
                 " | SBD: " + (item.getSbd() != null ? item.getSbd() : "---");

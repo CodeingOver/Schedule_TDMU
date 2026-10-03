@@ -5,33 +5,164 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
-    <!-- Thanh chuyển tab Lịch Học / Lịch Thi -->
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tab_layout"
+    <!-- Top Utility Bar: Header Tinh Gọn + Icon Tác Vụ Import/Scan -->
+    <LinearLayout
+        android:id="@+id/schedule_top_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
         android:background="@color/surface"
-        app:tabIndicatorColor="@color/primary"
-        app:tabSelectedTextColor="@color/primary"
-        app:tabTextColor="@color/text_secondary">
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="8dp">
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Lịch Học" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
+            <ImageButton
+                android:id="@+id/btn_prev_week"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Tuần trước"
+                android:src="@drawable/ic_arrow_left" />
+
+            <Spinner
+                android:id="@+id/spinner_week"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:spinnerMode="dropdown" />
+
+            <ImageButton
+                android:id="@+id/btn_next_week"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Tuần sau"
+                android:src="@drawable/ic_arrow_right" />
+
+            <!-- Nút Icon Nhập Excel -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_import_excel"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:contentDescription="Nhập Excel"
+                android:padding="0dp"
+                android:text="📥"
+                android:textColor="@color/primary"
+                android:textSize="18sp" />
+
+            <!-- Nút Icon Quét TKB AI -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_scan_schedule_top"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:contentDescription="Quét TKB AI"
+                android:padding="0dp"
+                android:text="📸"
+                android:textColor="@color/primary"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <!-- Thanh 7 Ngày Trong Tuần Trượt Ngang (Week Strip) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_week_strip"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Lịch Thi" />
-    </com.google.android.material.tabs.TabLayout>
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp"
+            android:clipToPadding="false"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        <!-- Thanh Thao Tác Chọn Hàng Loạt (Họat động khi Nhấn Giữ) -->
+        <LinearLayout
+            android:id="@+id/layout_selection_bar"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="6dp"
+            android:background="@color/primary"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tv_selected_count"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Đã chọn 0 môn"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_select_all"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="Chọn tất cả"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_delete_selected"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:layout_marginStart="4dp"
+                android:backgroundTint="@color/error"
+                android:text="Xóa"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+
+            <ImageButton
+                android:id="@+id/btn_cancel_selection"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Hủy chọn"
+                android:src="@drawable/ic_close"
+                app:tint="@color/white" />
+        </LinearLayout>
+
+        <!-- Thanh chuyển tab Lịch Học / Lịch Thi -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/surface"
+            app:tabIndicatorColor="@color/primary"
+            app:tabSelectedTextColor="@color/primary"
+            app:tabTextColor="@color/text_secondary">
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lịch Học" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lịch Thi" />
+        </com.google.android.material.tabs.TabLayout>
+    </LinearLayout>
 
     <!-- Danh sách Lịch -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_schedule_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/tab_layout"
+        android:layout_below="@id/schedule_top_bar"
         android:clipToPadding="false"
         android:paddingTop="8dp"
         android:paddingBottom="80dp" />

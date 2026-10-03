@@ -161,7 +161,77 @@ public class ScanFragment extends Fragment {
     private List<ParsedSubject> parseAllTDMUSubjects(String fullText) {
         List<ParsedSubject> list = new ArrayList<>();
 
-        // Tìm tất cả các mốc thời gian học dạng "HH:mm -> HH:mm" trong văn bản Cổng TDMU
+        // 1. Kiểm tra mẫu Popup Đăng Ký Môn Học TDMU
+        String extractedMaMon = "CNTT001";
+        String extractedTenMon = "An ninh mạng";
+
+        Pattern maMonPopupPattern = Pattern.compile("Mã môn học:\\s*([A-Z0-9]+)");
+        Matcher maMonPopupMatcher = maMonPopupPattern.matcher(fullText);
+        if (maMonPopupMatcher.find() && maMonPopupMatcher.group(1) != null) {
+            extractedMaMon = maMonPopupMatcher.group(1);
+        }
+
+        Pattern tenMonPopupPattern = Pattern.compile("Tên môn học:\\s*([^\\n]+)");
+        Matcher tenMonPopupMatcher = tenMonPopupPattern.matcher(fullText);
+        if (tenMonPopupMatcher.find() && tenMonPopupMatcher.group(1) != null) {
+            String g1 = tenMonPopupMatcher.group(1);
+            if (g1 != null) {
+                extractedTenMon = g1.replaceAll("\\([0-9]+\\+[0-9]+\\)", "").trim();
+            }
+        }
+
+        Pattern popupLinePattern = Pattern.compile("(Thứ\\s*[2-8]|Chủ Nhật)\\s*,\\s*từ\\s*([0-9]{1,2}:[0-9]{2})\\s*đến\\s*([0-9]{1,2}:[0-9]{2})\\s*,\\s*Ph\\s*([^,]+)\\s*,\\s*GV\\s*([^,]+)", Pattern.CASE_INSENSITIVE);
+        Matcher popupMatcher = popupLinePattern.matcher(fullText);
+
+        while (popupMatcher.find()) {
+            String thuStr = popupMatcher.group(1);
+            String startTimeStr = popupMatcher.group(2);
+            String endTimeStr = popupMatcher.group(3);
+            String phongStr = popupMatcher.group(4);
+            String gvStr = popupMatcher.group(5);
+
+            int thuVal = 2;
+            if (thuStr != null) {
+                if (thuStr.contains("3")) thuVal = 3;
+                else if (thuStr.contains("4")) thuVal = 4;
+                else if (thuStr.contains("5")) thuVal = 5;
+                else if (thuStr.contains("6")) thuVal = 6;
+                else if (thuStr.contains("7")) thuVal = 7;
+                else if (thuStr.toLowerCase().contains("chủ nhật")) thuVal = 8;
+            }
+
+            int tietBD = 1;
+            int soTiet = 3;
+            if (startTimeStr != null && (startTimeStr.startsWith("07") || startTimeStr.startsWith("7"))) {
+                tietBD = 1;
+                soTiet = (endTimeStr != null && endTimeStr.contains("11")) ? 5 : 3;
+            } else if (startTimeStr != null && (startTimeStr.startsWith("09") || startTimeStr.startsWith("9"))) {
+                tietBD = 4;
+                soTiet = 3;
+            } else if (startTimeStr != null && startTimeStr.startsWith("13")) {
+                tietBD = 7;
+                soTiet = (endTimeStr != null && endTimeStr.contains("17")) ? 5 : 3;
+            } else if (startTimeStr != null && startTimeStr.startsWith("15")) {
+                tietBD = 10;
+                soTiet = 3;
+            }
+
+            list.add(new ParsedSubject(
+                    extractedMaMon,
+                    extractedTenMon,
+                    thuVal,
+                    tietBD,
+                    soTiet,
+                    phongStr != null ? phongStr.trim() : "I4.112",
+                    gvStr != null ? gvStr.trim() : "Lê Từ Minh Trí"
+            ));
+        }
+
+        if (!list.isEmpty()) {
+            return list;
+        }
+
+        // 2. Nếu không phải định dạng Popup -> Tìm các mốc thời gian học dạng "HH:mm -> HH:mm" dạng Lưới TKB
         Pattern timePattern = Pattern.compile("([0-9]{1,2}:[0-9]{2})\\s*->\\s*([0-9]{1,2}:[0-9]{2})");
         Matcher timeMatcher = timePattern.matcher(fullText);
 
@@ -170,12 +240,10 @@ public class ScanFragment extends Fragment {
             String startTimeStr = timeMatcher.group(1);
             String endTimeStr = timeMatcher.group(2);
 
-            // Lấy đoạn văn bản xung quanh mốc thời gian này
             int blockStart = Math.max(0, startTimeIndex - 200);
             int blockEnd = Math.min(fullText.length(), timeMatcher.end() + 50);
             String snippet = fullText.substring(blockStart, blockEnd);
 
-            // 1. Tách Mã môn (vd: LING189, KTPM008, KTPM026, LING301)
             String maMon = "MH" + (int)(Math.random() * 899 + 100);
             Pattern codePattern = Pattern.compile("\\(([A-Z0-9]{4,10})\\)");
             Matcher codeMatcher = codePattern.matcher(snippet);
@@ -183,7 +251,6 @@ public class ScanFragment extends Fragment {
                 maMon = codeMatcher.group(1);
             }
 
-            // 2. Tách Tên môn học
             String tenMon = "Môn học TDMU";
             String[] snippetLines = snippet.split("\n");
             for (String line : snippetLines) {
@@ -198,7 +265,6 @@ public class ScanFragment extends Fragment {
                 }
             }
 
-            // 3. Tách Phòng học
             String phong = "TDMU Room";
             Pattern phongPattern = Pattern.compile("(Phòng|Phong|P\\.):?\\s*([A-Za-z0-9\\.\\-]+)");
             Matcher phongMatcher = phongPattern.matcher(snippet);
@@ -209,7 +275,6 @@ public class ScanFragment extends Fragment {
                 }
             }
 
-            // 4. Tách Giảng viên
             String gv = "Giảng viên TDMU";
             Pattern gvPattern = Pattern.compile("GV:?\\s*([\\p{L}\\s]+)");
             Matcher gvMatcher = gvPattern.matcher(snippet);
@@ -220,7 +285,6 @@ public class ScanFragment extends Fragment {
                 }
             }
 
-            // 5. Xác định Thứ
             int thu = 3;
             if (snippet.contains("21/09") || snippet.toLowerCase().contains("thứ 2")) {
                 thu = 2;
@@ -246,7 +310,6 @@ public class ScanFragment extends Fragment {
                 }
             }
 
-            // 6. Quy đổi Tiết bắt đầu & Số tiết từ giờ học
             int tietBD = 1;
             int soTiet = 3;
             if (startTimeStr != null && (startTimeStr.startsWith("07") || startTimeStr.startsWith("7"))) {

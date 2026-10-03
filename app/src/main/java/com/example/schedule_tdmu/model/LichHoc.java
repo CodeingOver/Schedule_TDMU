@@ -1,6 +1,15 @@
 package com.example.schedule_tdmu.model;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class LichHoc {
+    private static final Pattern DATE_RANGE_PATTERN = Pattern.compile("([0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4})\\s*đến\\s*([0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4})", Pattern.CASE_INSENSITIVE);
+
     private int id;
     private int monHocId;
     private int thu; // 2: Thứ 2, 3: Thứ 3,... 8: Chủ Nhật
@@ -11,6 +20,11 @@ public class LichHoc {
     private int hocKy;
     private String namHoc;
     private String tuanHoc;
+
+    // Cache ngày bắt đầu & ngày kết thúc để tăng tốc tối đa
+    private transient Date parsedStartDate = null;
+    private transient Date parsedEndDate = null;
+    private transient boolean datesParsed = false;
 
     // Các thuộc tính dùng khi JOIN với bảng MonHoc
     private String maMon;
@@ -43,6 +57,59 @@ public class LichHoc {
         this.hocKy = hocKy;
         this.namHoc = namHoc;
         this.tuanHoc = tuanHoc;
+    }
+
+    private void parseDatesIfNeeded() {
+        if (datesParsed) return;
+        datesParsed = true;
+        if (tuanHoc == null || tuanHoc.trim().isEmpty()) return;
+
+        try {
+            Matcher matcher = DATE_RANGE_PATTERN.matcher(tuanHoc);
+            if (matcher.find()) {
+                String startStr = matcher.group(1);
+                String endStr = matcher.group(2);
+
+                if (startStr != null && endStr != null) {
+                    SimpleDateFormat sdfShort = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
+                    SimpleDateFormat sdfLong = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
+                    parsedStartDate = (startStr.length() <= 8) ? sdfShort.parse(startStr) : sdfLong.parse(startStr);
+                    parsedEndDate = (endStr.length() <= 8) ? sdfShort.parse(endStr) : sdfLong.parse(endStr);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    public boolean isClassActiveOnDate(Date targetDate) {
+        if (targetDate == null) return true;
+        parseDatesIfNeeded();
+        if (parsedStartDate == null || parsedEndDate == null) return true;
+
+        long targetMs = targetDate.getTime();
+        long startMs = parsedStartDate.getTime() - 86400000L; // Biên Lùi 1 ngày
+        long endMs = parsedEndDate.getTime() + 86400000L;    // Biên Tiến 1 ngày
+
+        return targetMs >= startMs && targetMs <= endMs;
+    }
+
+    public boolean isClassActiveInWeek(Date weekStartDate) {
+        if (weekStartDate == null) return true;
+        parseDatesIfNeeded();
+        if (parsedStartDate == null || parsedEndDate == null) return true;
+
+        Calendar calWeekEnd = Calendar.getInstance();
+        calWeekEnd.setTime(weekStartDate);
+        calWeekEnd.add(Calendar.DAY_OF_YEAR, 6);
+
+        long weekStartMs = weekStartDate.getTime() - 86400000L;
+        long weekEndMs = calWeekEnd.getTimeInMillis() + 86400000L;
+
+        long startMs = parsedStartDate.getTime();
+        long endMs = parsedEndDate.getTime();
+
+        return !(endMs < weekStartMs || startMs > weekEndMs);
     }
 
     public int getId() {
