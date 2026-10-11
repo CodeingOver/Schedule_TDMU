@@ -53,7 +53,7 @@ public class HomeFragment extends Fragment {
         tvSummaryBadge = view.findViewById(R.id.tv_summary_badge);
 
         if (prefManager != null) {
-            tvGreeting.setText("Xin chào, " + prefManager.getStudentName() + " 👋");
+            tvGreeting.setText("Xin chào, " + prefManager.getStudentName());
         }
 
         rvTodaySchedule = view.findViewById(R.id.rv_today_schedule);
@@ -102,7 +102,7 @@ public class HomeFragment extends Fragment {
                 tvSummaryBadge.setText(totalToday + " Môn");
             } else {
                 tvSummaryTitle.setText("Hôm nay không có lịch học");
-                tvSummaryDetail.setText("Hãy tận hưởng thời gian nghỉ ngơi nhé! 🎉");
+                tvSummaryDetail.setText("Hãy tận hưởng thời gian nghỉ ngơi nhé!");
                 tvSummaryBadge.setText("Nghỉ học");
             }
         }

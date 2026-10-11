@@ -5,167 +5,897 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
-    <!-- Top Utility Bar: Header Tinh Gọn + Icon Tác Vụ Import/Scan -->
+    <!-- Thanh Thao Tác Chọn Hàng Loạt (Hiển thị khi Nhấn Giữ) -->
     <LinearLayout
-        android:id="@+id/schedule_top_bar"
+        android:id="@+id/layout_selection_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="52dp"
         android:layout_alignParentTop="true"
-        android:background="@color/surface"
-        android:orientation="vertical"
+        android:background="@color/primary"
+        android:elevation="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:paddingHorizontal="12dp"
-        android:paddingTop="8dp">
+        android:visibility="gone">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/tv_selected_count"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:text="Đã chọn 0 môn"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
-            <ImageButton
-                android:id="@+id/btn_prev_week"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Tuần trước"
-                android:src="@drawable/ic_arrow_left" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_select_all"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:text="Chọn tất cả"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
 
-            <Spinner
-                android:id="@+id/spinner_week"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:spinnerMode="dropdown" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_delete_selected"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:layout_marginStart="4dp"
+            android:backgroundTint="@color/error"
+            android:text="Xóa"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
 
-            <ImageButton
-                android:id="@+id/btn_next_week"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Tuần sau"
-                android:src="@drawable/ic_arrow_right" />
-
-            <!-- Nút Icon Nhập Excel -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_import_excel"
-                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:contentDescription="Nhập Excel"
-                android:padding="0dp"
-                android:text="📥"
-                android:textColor="@color/primary"
-                android:textSize="18sp" />
-
-            <!-- Nút Icon Quét TKB AI -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_scan_schedule_top"
-                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:contentDescription="Quét TKB AI"
-                android:padding="0dp"
-                android:text="📸"
-                android:textColor="@color/primary"
-                android:textSize="18sp" />
-        </LinearLayout>
-
-        <!-- Thanh 7 Ngày Trong Tuần Trượt Ngang (Week Strip) -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_week_strip"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="4dp"
-            android:clipToPadding="false"
-            android:orientation="horizontal"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-
-        <!-- Thanh Thao Tác Chọn Hàng Loạt (Họat động khi Nhấn Giữ) -->
-        <LinearLayout
-            android:id="@+id/layout_selection_bar"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="6dp"
-            android:background="@color/primary"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="12dp"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/tv_selected_count"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Đã chọn 0 môn"
-                android:textColor="@color/white"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_select_all"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:text="Chọn tất cả"
-                android:textColor="@color/white"
-                android:textSize="12sp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_delete_selected"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:layout_marginStart="4dp"
-                android:backgroundTint="@color/error"
-                android:text="Xóa"
-                android:textColor="@color/white"
-                android:textSize="12sp" />
-
-            <ImageButton
-                android:id="@+id/btn_cancel_selection"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="4dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Hủy chọn"
-                android:src="@drawable/ic_close"
-                app:tint="@color/white" />
-        </LinearLayout>
-
-        <!-- Thanh chuyển tab Lịch Học / Lịch Thi -->
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tab_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/surface"
-            app:tabIndicatorColor="@color/primary"
-            app:tabSelectedTextColor="@color/primary"
-            app:tabTextColor="@color/text_secondary">
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Lịch Học" />
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Lịch Thi" />
-        </com.google.android.material.tabs.TabLayout>
+        <ImageButton
+            android:id="@+id/btn_cancel_selection"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Hủy chọn"
+            android:src="@drawable/ic_close"
+            app:tint="@color/white" />
     </LinearLayout>
 
-    <!-- Danh sách Lịch -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_schedule_list"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/schedule_top_bar"
+        android:layout_below="@id/layout_selection_bar"
         android:clipToPadding="false"
-        android:paddingTop="8dp"
-        android:paddingBottom="80dp" />
+        android:fillViewport="true"
+        android:paddingBottom="96dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp">
+
+            <!-- 1. HERO CARD: Sắp diễn ra & Lời chào chuẩn Google Stitch -->
+            <RelativeLayout
+                android:id="@+id/card_hero_next_class"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_hero_gradient"
+                android:elevation="4dp"
+                android:padding="16dp">
+
+                <!-- Watermark Icon -->
+                <ImageView
+                    android:layout_width="88dp"
+                    android:layout_height="88dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true"
+                    android:alpha="0.14"
+                    android:contentDescription="School watermark"
+                    android:src="@drawable/ic_school"
+                    app:tint="@color/white" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Hàng trên: Lời chào & Badge Tiết học kế tiếp -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tv_hero_greeting"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Chào buổi sáng, Minh Anh!"
+                            android:textColor="@color/white"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_pill_translucent"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp">
+
+                            <View
+                                android:layout_width="7dp"
+                                android:layout_height="7dp"
+                                android:background="@drawable/shape_dot"
+                                android:backgroundTint="@color/tertiary_fixed" />
+
+                            <TextView
+                                android:id="@+id/tv_hero_status_pill"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="5dp"
+                                android:text="Tiết học kế tiếp"
+                                android:textColor="@color/tertiary_fixed"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Badge Mã môn & Lớp -->
+                    <TextView
+                        android:id="@+id/tv_hero_course_code"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_pill_translucent"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp"
+                        android:text="Mã môn: LING189 • Lớp D24CNTT01"
+                        android:textColor="@color/secondary_fixed"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <!-- Tên Môn học chính -->
+                    <TextView
+                        android:id="@+id/tv_hero_course_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Phát triển ứng dụng di động"
+                        android:textColor="@color/white"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <!-- Khung giờ & Đếm ngược -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:contentDescription="Thời gian"
+                            android:src="@drawable/ic_schedule"
+                            app:tint="@color/tertiary_fixed" />
+
+                        <TextView
+                            android:id="@+id/tv_hero_time"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="09:30 - 11:45 (Tiết 4 - 6)"
+                            android:textColor="@color/primary_fixed"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/tv_hero_countdown"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_pill_tertiary"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="2dp"
+                            android:text="Còn 25 phút"
+                            android:textColor="@color/on_tertiary_fixed"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Phòng học -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:contentDescription="Phòng học"
+                            android:src="@drawable/ic_location_on"
+                            app:tint="@color/secondary_fixed" />
+
+                        <TextView
+                            android:id="@+id/tv_hero_room"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="Phòng B2-405 (Tòa B - Tầng 4)"
+                            android:textColor="@color/primary_fixed"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <!-- Giảng viên -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:contentDescription="Giảng viên"
+                            android:src="@drawable/ic_person"
+                            app:tint="@color/secondary_fixed" />
+
+                        <TextView
+                            android:id="@+id/tv_hero_lecturer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="TS. Nguyễn Hoàng Nam"
+                            android:textColor="@color/primary_fixed"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <!-- Hàng nút hành động trong Hero Card -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_hero_directions"
+                            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="42dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            android:backgroundTint="@color/white"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="Chỉ đường phòng học"
+                            android:textAllCaps="false"
+                            android:textColor="@color/primary"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            app:cornerRadius="12dp"
+                            app:icon="@drawable/ic_directions_walk"
+                            app:iconGravity="textStart"
+                            app:iconSize="18dp"
+                            app:iconTint="@color/primary" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_hero_materials"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="42dp"
+                            android:backgroundTint="#26FFFFFF"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="Tài liệu"
+                            android:textAllCaps="false"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            app:cornerRadius="12dp"
+                            app:icon="@drawable/ic_auto_stories"
+                            app:iconGravity="textStart"
+                            app:iconSize="17dp"
+                            app:iconTint="@color/white"
+                            app:strokeWidth="0dp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </RelativeLayout>
+
+            <!-- 2. QUICK SWITCHER / CHẾ ĐỘ XEM (Theo ngày | Lưới tuần | Lịch thi) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Segmented Switcher -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_segmented_container"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="4dp">
+
+                    <LinearLayout
+                        android:id="@+id/btn_mode_day"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_segmented_active"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="12dp">
+
+                        <ImageView
+                            android:id="@+id/img_mode_day"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:contentDescription="Theo ngày"
+                            android:src="@drawable/ic_view_day"
+                            app:tint="@color/primary" />
+
+                        <TextView
+                            android:id="@+id/tv_mode_day"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="5dp"
+                            android:text="Theo ngày"
+                            android:textColor="@color/primary"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btn_mode_week"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="4dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="12dp">
+
+                        <ImageView
+                            android:id="@+id/img_mode_week"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:contentDescription="Lưới tuần"
+                            android:src="@drawable/ic_calendar_week"
+                            app:tint="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tv_mode_week"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="5dp"
+                            android:text="Lưới tuần"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <!-- Nút Chế độ Lịch thi (N) -->
+                <LinearLayout
+                    android:id="@+id/btn_mode_exam"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:background="@drawable/bg_pill_secondary"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="12dp">
+
+                    <ImageView
+                        android:id="@+id/img_mode_exam"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:contentDescription="Lịch thi"
+                        android:src="@drawable/ic_assignment_late"
+                        app:tint="@color/primary" />
+
+                    <TextView
+                        android:id="@+id/tv_mode_exam"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:text="Lịch thi (3)"
+                        android:textColor="@color/primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Hidden TabLayout để tương thích nếu cần -->
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tab_layout"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:visibility="gone" />
+
+            <!-- 3. THANH CHỌN TUẦN & CÔNG CỤ IMPORT / QUÉT TKB -->
+            <LinearLayout
+                android:id="@+id/layout_week_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:contentDescription="Lịch tuần"
+                        android:src="@drawable/ic_event"
+                        app:tint="@color/primary" />
+
+                    <ImageButton
+                        android:id="@+id/btn_prev_week"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_marginStart="2dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Tuần trước"
+                        android:src="@drawable/ic_arrow_left"
+                        app:tint="@color/text_secondary" />
+
+                    <Spinner
+                        android:id="@+id/spinner_week"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:spinnerMode="dropdown" />
+
+                    <ImageButton
+                        android:id="@+id/btn_next_week"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Tuần sau"
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="@color/text_secondary" />
+
+                    <!-- Nút Nhập File Excel bằng Vector Icon -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_import_excel"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="4dp"
+                        android:contentDescription="Nhập Excel"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:padding="0dp"
+                        app:icon="@drawable/ic_upload_file"
+                        app:iconGravity="textStart"
+                        app:iconPadding="0dp"
+                        app:iconSize="20dp"
+                        app:iconTint="@color/primary" />
+
+                    <!-- Nút Quét Ảnh TKB bằng Vector Icon -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_scan_schedule_top"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:contentDescription="Quét TKB"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:padding="0dp"
+                        app:icon="@drawable/ic_qr_code_scanner"
+                        app:iconGravity="textStart"
+                        app:iconPadding="0dp"
+                        app:iconSize="20dp"
+                        app:iconTint="@color/primary" />
+                </LinearLayout>
+
+                <!-- Thanh 7 Ngày Trong Tuần Trượt Ngang (Week Strip) -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_week_strip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal" />
+            </LinearLayout>
+
+            <!-- 4. DAILY TIMELINE HEADER & CURRENT TIME INDICATOR -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_timeline_day_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lịch học trong ngày"
+                    android:textColor="@color/text_primary"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_timeline_today_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_pill_surface_high"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp"
+                    android:text="Hôm nay"
+                    android:textColor="@color/primary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tv_timeline_total_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tổng: 3 môn"
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Vạch Đỏ Thời Gian Hiện Tại chuẩn Stitch -->
+            <LinearLayout
+                android:id="@+id/layout_current_time_indicator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_current_time_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="09:05 Hiện tại"
+                    android:textColor="@color/error"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/shape_dot"
+                    android:backgroundTint="@color/error" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp"
+                    android:background="@color/error_container" />
+            </LinearLayout>
+
+            <!-- Danh sách Lịch học / Lịch thi -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_schedule_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" />
+
+            <!-- Empty state khi ngày nghỉ -->
+            <LinearLayout
+                android:id="@+id/layout_empty_schedule"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="16dp"
+                android:background="@drawable/bg_segmented_active"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:contentDescription="Nghỉ học"
+                    android:src="@drawable/ic_check_circle"
+                    app:tint="@color/tertiary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Không có lịch học trong ngày này"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Nhấn chọn ngày khác hoặc xem chế độ Lưới tuần"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- 5. QUICK WIDGET & ACADEMIC STATUS (Bento Style chuẩn Stitch) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal">
+
+                <!-- Widget 1: Điểm danh chuyên cần -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_bento_attendance"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    app:cardBackgroundColor="@color/surface_container_lowest"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp"
+                    app:strokeColor="@color/surface_container_high"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <FrameLayout
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:background="@drawable/bg_pill_tertiary">
+
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="Chuyên cần"
+                                    android:src="@drawable/ic_verified"
+                                    app:tint="@color/on_tertiary_fixed" />
+                            </FrameLayout>
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1" />
+
+                            <TextView
+                                android:id="@+id/tv_bento_attendance_pct"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_pill_tertiary"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="2dp"
+                                android:text="98%"
+                                android:textColor="@color/on_tertiary_fixed"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tv_bento_attendance_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="8/8 Buổi"
+                            android:textColor="@color/text_primary"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Chuyên cần tuần 12"
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp" />
+
+                        <ProgressBar
+                            android:id="@+id/pb_bento_attendance"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="6dp"
+                            android:layout_marginTop="8dp"
+                            android:max="100"
+                            android:progress="98"
+                            android:progressTint="@color/tertiary_container" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Widget 2: Kỳ thi học kỳ -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_bento_exam"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    app:cardBackgroundColor="@color/surface_container_lowest"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp"
+                    app:strokeColor="@color/surface_container_high"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <FrameLayout
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:background="@drawable/bg_pill_secondary">
+
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="Lịch thi"
+                                    android:src="@drawable/ic_calendar_month"
+                                    app:tint="@color/secondary" />
+                            </FrameLayout>
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1" />
+
+                            <TextView
+                                android:id="@+id/tv_bento_exam_badge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_pill_secondary"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="2dp"
+                                android:text="HK1"
+                                android:textColor="@color/secondary"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tv_bento_exam_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="3 Môn thi"
+                            android:textColor="@color/text_primary"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lịch thi chính thức"
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp" />
+
+                        <ProgressBar
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="6dp"
+                            android:layout_marginTop="8dp"
+                            android:max="100"
+                            android:progress="75"
+                            android:progressTint="@color/secondary" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <!-- 6. CAMPUS ANNOUNCEMENT TICKER -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_campus_ticker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@color/surface_container_low"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/surface_container_high"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
+
+                    <FrameLayout
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_pill_secondary">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Thông báo"
+                            android:src="@drawable/ic_campaign"
+                            app:tint="@color/on_secondary_fixed" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_ticker_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="Nhắc nhở: Kiểm tra thông báo đổi phòng học &amp; lịch thi"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_ticker_subtitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="Nhấn để xem toàn bộ thông báo học tập mới nhất"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="Xem chi tiết"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/text_muted" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <!-- Nút Thêm Lịch Mới (+) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -174,7 +904,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_margin="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
         android:contentDescription="Thêm lịch"
         android:src="@drawable/ic_add"
         app:backgroundTint="@color/primary"

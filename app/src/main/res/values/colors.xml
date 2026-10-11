@@ -1,30 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#1976D2</color>
-    <color name="primary_dark">#0D47A1</color>
-    <color name="primary_light">#BBDEFB</color>
-    <color name="accent">#009688</color>
+    <!-- Google Stitch Light Mode Palette (EduSchedule) -->
+    <color name="primary">#3525CD</color>
+    <color name="primary_dark">#0F0069</color>
+    <color name="primary_light">#E2DFFF</color>
+    <color name="primary_container">#4F46E5</color>
+    <color name="primary_fixed">#E2DFFF</color>
+    <color name="on_primary_fixed">#0F0069</color>
+    <color name="accent">#006E4B</color>
 
     <color name="secondary">#0058BE</color>
-    <color name="tertiary">#006E4B</color>
-    <color name="error">#D32F2F</color>
+    <color name="secondary_container">#2170E4</color>
+    <color name="secondary_fixed">#D8E2FF</color>
+    <color name="on_secondary_fixed">#001A42</color>
 
-    <color name="background">#F5F7FA</color>
-    <color name="surface">#FFFFFF</color>
-    <color name="surface_container_high">#E2E7FF</color>
+    <color name="tertiary">#005338</color>
+    <color name="tertiary_container">#006E4B</color>
+    <color name="tertiary_fixed">#6FFBBE</color>
+    <color name="on_tertiary_fixed">#002113</color>
+
+    <color name="error">#BA1A1A</color>
+    <color name="error_container">#FFDAD6</color>
+    <color name="on_error_container">#93000A</color>
+
+    <color name="background">#FAF8FF</color>
+    <color name="surface">#FAF8FF</color>
     <color name="surface_container_lowest">#FFFFFF</color>
+    <color name="surface_container_low">#F2F3FF</color>
+    <color name="surface_container">#EAEDFF</color>
+    <color name="surface_container_high">#E2E7FF</color>
+    <color name="surface_container_highest">#DAE2FD</color>
 
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#757575</color>
+    <color name="text_primary">#131B2E</color>
+    <color name="text_secondary">#464555</color>
     <color name="text_muted">#777587</color>
-    <color name="divider">#BDBDBD</color>
+    <color name="outline">#777587</color>
+    <color name="outline_variant">#C7C4D8</color>
+    <color name="divider">#E2E7FF</color>
 
-    <color name="card_bg_blue">#E3F2FD</color>
-    <color name="card_bg_green">#E8F5E9</color>
-    <color name="card_bg_orange">#FFF3E0</color>
-    <color name="card_bg_purple">#F3E5F5</color>
+    <color name="card_bg_blue">#D8E2FF</color>
+    <color name="card_bg_green">#D1FAE5</color>
+    <color name="card_bg_orange">#FEF3C7</color>
+    <color name="card_bg_purple">#E2DFFF</color>
 
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="unread_badge">#D32F2F</color>
+    <color name="unread_badge">#BA1A1A</color>
 </resources>

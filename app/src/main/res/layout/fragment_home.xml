@@ -29,7 +29,7 @@
                     android:id="@+id/tv_greeting"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Xin chào, Sinh viên TDMU 👋"
+                    android:text="Xin chào, Sinh viên TDMU"
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -116,7 +116,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="8dp"
-            android:text="📅 Chi tiết lịch học hôm nay"
+            android:text="Chi tiết lịch học hôm nay"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -133,7 +133,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="8dp"
-            android:text="🔔 Thông báo mới nhất"
+            android:text="Thông báo mới nhất"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />

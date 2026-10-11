@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">TDMU Schedule</string>
-    <string name="nav_home">Trang chủ</string>
+    <string name="app_name">EduSchedule TDMU</string>
     <string name="nav_schedule">Thời khóa biểu</string>
-    <string name="nav_scan">Quét TKB</string>
     <string name="nav_notifications">Thông báo</string>
+    <string name="nav_subjects">Môn học</string>
+    <string name="nav_profile">Hồ sơ</string>
 </resources>

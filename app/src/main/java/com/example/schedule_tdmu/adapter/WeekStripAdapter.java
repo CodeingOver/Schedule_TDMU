@@ -12,12 +12,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.schedule_tdmu.R;
 import com.google.android.material.card.MaterialCardView;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 
 public class WeekStripAdapter extends RecyclerView.Adapter<WeekStripAdapter.WeekDayViewHolder> {
 
@@ -27,13 +23,19 @@ public class WeekStripAdapter extends RecyclerView.Adapter<WeekStripAdapter.Week
         public String dateNum;
         public Date fullDate;
         public boolean hasClass;
+        public int classCount;
 
         public DayItem(int thuVal, String dayName, String dateNum, Date fullDate, boolean hasClass) {
+            this(thuVal, dayName, dateNum, fullDate, hasClass, hasClass ? 1 : 0);
+        }
+
+        public DayItem(int thuVal, String dayName, String dateNum, Date fullDate, boolean hasClass, int classCount) {
             this.thuVal = thuVal;
             this.dayName = dayName;
             this.dateNum = dateNum;
             this.fullDate = fullDate;
             this.hasClass = hasClass;
+            this.classCount = classCount;
         }
     }
 
@@ -42,8 +44,8 @@ public class WeekStripAdapter extends RecyclerView.Adapter<WeekStripAdapter.Week
     }
 
     private List<DayItem> dayList;
-    private int selectedPosition = 0; // Mặc định T2 hoặc ngày chọn
-    private OnDaySelectedListener listener;
+    private int selectedPosition = 0;
+    private final OnDaySelectedListener listener;
 
     public WeekStripAdapter(List<DayItem> dayList, OnDaySelectedListener listener) {
         this.dayList = dayList;
@@ -86,26 +88,47 @@ public class WeekStripAdapter extends RecyclerView.Adapter<WeekStripAdapter.Week
         holder.tvDayName.setText(item.dayName);
         holder.tvDateNum.setText(item.dateNum);
 
+        if (holder.tvClassCount != null) {
+            if (item.thuVal == -1) {
+                holder.tvClassCount.setText("Tuần");
+            } else if (item.classCount > 0) {
+                holder.tvClassCount.setText(item.classCount + " môn");
+            } else {
+                holder.tvClassCount.setText("Nghỉ");
+            }
+        }
+
         if (item.hasClass) {
             holder.viewDot.setVisibility(View.VISIBLE);
-            holder.viewDot.setBackgroundColor(isSelected ? Color.WHITE : Color.parseColor("#1976D2"));
+            holder.viewDot.setBackgroundColor(isSelected ? Color.parseColor("#6FFBBE") : Color.parseColor("#3525CD"));
         } else {
-            holder.viewDot.setVisibility(View.INVISIBLE);
+            holder.viewDot.setVisibility(View.GONE);
         }
 
         if (isSelected) {
-            holder.cardDayChip.setCardBackgroundColor(Color.parseColor("#1976D2"));
+            holder.cardDayChip.setCardBackgroundColor(Color.parseColor("#3525CD"));
+            holder.cardDayChip.setStrokeWidth(0);
             holder.tvDayName.setTextColor(Color.WHITE);
             holder.tvDateNum.setTextColor(Color.WHITE);
+            if (holder.tvClassCount != null) {
+                holder.tvClassCount.setTextColor(Color.parseColor("#E2DFFF"));
+            }
         } else {
             holder.cardDayChip.setCardBackgroundColor(Color.WHITE);
-            holder.tvDayName.setTextColor(Color.parseColor("#757575"));
-            holder.tvDateNum.setTextColor(Color.parseColor("#212121"));
+            holder.cardDayChip.setStrokeWidth(2);
+            holder.cardDayChip.setStrokeColor(Color.parseColor("#E2E7FF"));
+            holder.tvDayName.setTextColor(Color.parseColor("#464555"));
+            holder.tvDateNum.setTextColor(Color.parseColor("#131B2E"));
+            if (holder.tvClassCount != null) {
+                holder.tvClassCount.setTextColor(Color.parseColor("#777587"));
+            }
         }
 
         holder.itemView.setOnClickListener(v -> {
+            int pos = holder.getAdapterPosition();
+            if (pos == RecyclerView.NO_POSITION) return;
             int oldPos = selectedPosition;
-            selectedPosition = holder.getAdapterPosition();
+            selectedPosition = pos;
             notifyItemChanged(oldPos);
             notifyItemChanged(selectedPosition);
 
@@ -122,7 +145,7 @@ public class WeekStripAdapter extends RecyclerView.Adapter<WeekStripAdapter.Week
 
     static class WeekDayViewHolder extends RecyclerView.ViewHolder {
         MaterialCardView cardDayChip;
-        TextView tvDayName, tvDateNum;
+        TextView tvDayName, tvDateNum, tvClassCount;
         View viewDot;
 
         public WeekDayViewHolder(@NonNull View itemView) {
@@ -130,6 +153,7 @@ public class WeekStripAdapter extends RecyclerView.Adapter<WeekStripAdapter.Week
             cardDayChip = itemView.findViewById(R.id.card_day_chip);
             tvDayName = itemView.findViewById(R.id.tv_chip_day_name);
             tvDateNum = itemView.findViewById(R.id.tv_chip_date_num);
+            tvClassCount = itemView.findViewById(R.id.tv_chip_class_count);
             viewDot = itemView.findViewById(R.id.view_has_class_dot);
         }
     }

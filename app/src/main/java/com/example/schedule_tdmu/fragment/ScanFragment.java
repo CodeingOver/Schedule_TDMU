@@ -353,7 +353,7 @@ public class ScanFragment extends Fragment {
         Button btnSave = dialogView.findViewById(R.id.btn_save);
 
         if (tvTitle != null) {
-            tvTitle.setText("🔍 Môn " + (currentIndex + 1) + "/" + subjects.size() + ": Bóc Tách TKB");
+            tvTitle.setText("Môn " + (currentIndex + 1) + "/" + subjects.size() + ": Bóc Tách TKB");
         }
 
         String[] dsThu = {"Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"};
@@ -370,18 +370,18 @@ public class ScanFragment extends Fragment {
         etGiangVien.setText(currentSubject.giangVien);
 
         boolean isLast = (currentIndex == subjects.size() - 1);
-        btnSave.setText(isLast ? "Lưu & Hoàn Tất" : "Lưu & Tiếp Theo (" + (currentIndex + 2) + "/" + subjects.size() + ") ➔");
+        btnSave.setText(isLast ? "Lưu & Hoàn Tất" : "Lưu & Tiếp Theo (" + (currentIndex + 2) + "/" + subjects.size() + ")");
 
         // Thêm nút Lưu Tất Cả N Môn
         if (!isLast) {
-            builder.setNeutralButton("⚡ Lưu Tất Cả (" + (subjects.size() - currentIndex) + " Môn)", (d, which) -> {
+            builder.setNeutralButton("Lưu Tất Cả (" + (subjects.size() - currentIndex) + " Môn)", (d, which) -> {
                 int count = 0;
                 for (int i = currentIndex; i < subjects.size(); i++) {
                     ParsedSubject ps = subjects.get(i);
                     saveParsedSubjectToDb(ps.maMon, ps.tenMon, ps.thu, ps.tietBatDau, ps.soTiet, ps.phongHoc, ps.giangVien);
                     count++;
                 }
-                Toast.makeText(getContext(), "🎉 Đã lưu thành công tất cả " + count + " môn học vào CSDL!", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "Đã lưu thành công tất cả " + count + " môn học vào CSDL!", Toast.LENGTH_LONG).show();
             });
         }
 
@@ -412,7 +412,7 @@ public class ScanFragment extends Fragment {
                 Toast.makeText(getContext(), "Đã lưu môn [" + tenMon + "]. Chuyển sang môn tiếp theo...", Toast.LENGTH_SHORT).show();
                 showFormConfirmStepDialog(subjects, currentIndex + 1);
             } else {
-                Toast.makeText(getContext(), "🎉 Hoàn tất! Đã lưu toàn bộ " + subjects.size() + " môn học vào CSDL!", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "Hoàn tất! Đã lưu toàn bộ " + subjects.size() + " môn học vào CSDL!", Toast.LENGTH_LONG).show();
             }
         });
 

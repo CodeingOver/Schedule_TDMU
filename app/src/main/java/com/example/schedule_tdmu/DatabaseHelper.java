@@ -12,12 +12,13 @@ import com.example.schedule_tdmu.model.MonHoc;
 import com.example.schedule_tdmu.model.ThongBao;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "ScheduleTDMU.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 4;
 
     // Bảng MonHoc
     public static final String TABLE_MON_HOC = "MonHoc";
@@ -26,6 +27,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_TEN_MON = "ten_mon";
     public static final String COL_SO_TIN_CHI = "so_tin_chi";
     public static final String COL_MAU_SAC = "mau_sac";
+    public static final String COL_LOP_HOC = "lop_hoc";
+    public static final String COL_MH_GIANG_VIEN = "giang_vien";
+    public static final String COL_TONG_SO_TUAN = "tong_so_tuan";
+    public static final String COL_SO_TUAN_DA_HOC = "so_tuan_da_hoc";
+    public static final String COL_SO_BUOI_VANG = "so_buoi_vang";
+    public static final String COL_DIEM_QUA_TRINH = "diem_qua_trinh";
+    public static final String COL_TRANG_THAI = "trang_thai";
 
     // Bảng LichHoc
     public static final String TABLE_LICH_HOC = "LichHoc";
@@ -58,6 +66,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_NGAY_DANG = "ngay_dang";
     public static final String COL_LOAI_THONG_BAO = "loai_thong_bao";
     public static final String COL_DA_DOC = "da_doc";
+    public static final String COL_NGUON_TB = "nguon_thong_bao";
+    public static final String COL_PHONG_CU = "phong_cu";
+    public static final String COL_PHONG_MOI = "phong_moi";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -75,8 +86,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_MON_HOC_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COL_MA_MON + " TEXT NOT NULL UNIQUE, " +
                 COL_TEN_MON + " TEXT NOT NULL, " +
-                COL_SO_TIN_CHI + " INTEGER DEFAULT 0, " +
-                COL_MAU_SAC + " TEXT DEFAULT '#1976D2');";
+                COL_SO_TIN_CHI + " INTEGER DEFAULT 3, " +
+                COL_MAU_SAC + " TEXT DEFAULT '#3525CD', " +
+                COL_LOP_HOC + " TEXT DEFAULT '', " +
+                COL_MH_GIANG_VIEN + " TEXT DEFAULT '', " +
+                COL_TONG_SO_TUAN + " INTEGER DEFAULT 15, " +
+                COL_SO_TUAN_DA_HOC + " INTEGER DEFAULT 0, " +
+                COL_SO_BUOI_VANG + " INTEGER DEFAULT 0, " +
+                COL_DIEM_QUA_TRINH + " REAL DEFAULT -1, " +
+                COL_TRANG_THAI + " TEXT DEFAULT 'Đang diễn ra');";
 
         String CREATE_TABLE_LICH_HOC = "CREATE TABLE " + TABLE_LICH_HOC + " (" +
                 COL_LICH_HOC_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -109,7 +127,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_NOI_DUNG + " TEXT, " +
                 COL_NGAY_DANG + " TEXT, " +
                 COL_LOAI_THONG_BAO + " TEXT, " +
-                COL_DA_DOC + " INTEGER DEFAULT 0);";
+                COL_DA_DOC + " INTEGER DEFAULT 0, " +
+                COL_NGUON_TB + " TEXT DEFAULT '', " +
+                COL_PHONG_CU + " TEXT DEFAULT '', " +
+                COL_PHONG_MOI + " TEXT DEFAULT '');";
 
         db.execSQL(CREATE_TABLE_MON_HOC);
         db.execSQL(CREATE_TABLE_LICH_HOC);
@@ -126,9 +147,60 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // ==========================================
-    // XÓA TẤT CẢ DỮ LIỆU BẢNG (ĐỂ DÙNG DỮ LIỆU THẬT)
-    // ==========================================
+    private long insertMonHocInternal(SQLiteDatabase db, MonHoc monHoc) {
+        ContentValues values = new ContentValues();
+        values.put(COL_MA_MON, monHoc.getMaMon());
+        values.put(COL_TEN_MON, monHoc.getTenMon());
+        values.put(COL_SO_TIN_CHI, monHoc.getSoTinChi());
+        values.put(COL_MAU_SAC, monHoc.getMauSac());
+        values.put(COL_LOP_HOC, monHoc.getLopHoc());
+        values.put(COL_MH_GIANG_VIEN, monHoc.getGiangVien());
+        values.put(COL_TONG_SO_TUAN, monHoc.getTongSoTuan());
+        values.put(COL_SO_TUAN_DA_HOC, monHoc.getSoTuanDaHoc());
+        values.put(COL_SO_BUOI_VANG, monHoc.getSoBuoiVang());
+        values.put(COL_DIEM_QUA_TRINH, monHoc.getDiemQuaTrinh());
+        values.put(COL_TRANG_THAI, monHoc.getTrangThai());
+        return db.insertWithOnConflict(TABLE_MON_HOC, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+    }
+
+    private long insertLichHocInternal(SQLiteDatabase db, LichHoc lichHoc) {
+        ContentValues values = new ContentValues();
+        values.put(COL_LH_MON_HOC_ID, lichHoc.getMonHocId());
+        values.put(COL_THU, lichHoc.getThu());
+        values.put(COL_TIET_BAT_DAU, lichHoc.getTietBatDau());
+        values.put(COL_SO_TIET, lichHoc.getSoTiet());
+        values.put(COL_PHONG_HOC, lichHoc.getPhongHoc());
+        values.put(COL_GIANG_VIEN, lichHoc.getGiangVien());
+        values.put(COL_HOC_KY, lichHoc.getHocKy());
+        values.put(COL_NAM_HOC, lichHoc.getNamHoc());
+        values.put(COL_TUAN_HOC, lichHoc.getTuanHoc());
+        return db.insert(TABLE_LICH_HOC, null, values);
+    }
+
+    private long insertLichThiInternal(SQLiteDatabase db, LichThi lichThi) {
+        ContentValues values = new ContentValues();
+        values.put(COL_LT_MON_HOC_ID, lichThi.getMonHocId());
+        values.put(COL_NGAY_GIO_THI, lichThi.getNgayGioThi());
+        values.put(COL_PHONG_THI, lichThi.getPhongThi());
+        values.put(COL_HINH_THUC_THI, lichThi.getHinhThucThi());
+        values.put(COL_SBD, lichThi.getSbd());
+        values.put(COL_GHI_CHU_THI, lichThi.getGhiChu());
+        return db.insert(TABLE_LICH_THI, null, values);
+    }
+
+    private long insertThongBaoInternal(SQLiteDatabase db, ThongBao thongBao) {
+        ContentValues values = new ContentValues();
+        values.put(COL_TIEU_DE, thongBao.getTieuDe());
+        values.put(COL_NOI_DUNG, thongBao.getNoiDung());
+        values.put(COL_NGAY_DANG, thongBao.getNgayDang());
+        values.put(COL_LOAI_THONG_BAO, thongBao.getLoaiThongBao());
+        values.put(COL_DA_DOC, thongBao.getDaDoc());
+        values.put(COL_NGUON_TB, thongBao.getNguonThongBao());
+        values.put(COL_PHONG_CU, thongBao.getPhongCu());
+        values.put(COL_PHONG_MOI, thongBao.getPhongMoi());
+        return db.insert(TABLE_THONG_BAO, null, values);
+    }
+
     public void clearAllTables() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_LICH_THI, null, null);
@@ -143,13 +215,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public long insertMonHoc(MonHoc monHoc) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COL_MA_MON, monHoc.getMaMon());
-        values.put(COL_TEN_MON, monHoc.getTenMon());
-        values.put(COL_SO_TIN_CHI, monHoc.getSoTinChi());
-        values.put(COL_MAU_SAC, monHoc.getMauSac());
-
-        return db.insert(TABLE_MON_HOC, null, values);
+        return insertMonHocInternal(db, monHoc);
     }
 
     public int updateMonHoc(MonHoc monHoc) {
@@ -159,6 +225,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COL_TEN_MON, monHoc.getTenMon());
         values.put(COL_SO_TIN_CHI, monHoc.getSoTinChi());
         values.put(COL_MAU_SAC, monHoc.getMauSac());
+        values.put(COL_LOP_HOC, monHoc.getLopHoc());
+        values.put(COL_MH_GIANG_VIEN, monHoc.getGiangVien());
+        values.put(COL_TONG_SO_TUAN, monHoc.getTongSoTuan());
+        values.put(COL_SO_TUAN_DA_HOC, monHoc.getSoTuanDaHoc());
+        values.put(COL_SO_BUOI_VANG, monHoc.getSoBuoiVang());
+        values.put(COL_DIEM_QUA_TRINH, monHoc.getDiemQuaTrinh());
+        values.put(COL_TRANG_THAI, monHoc.getTrangThai());
 
         return db.update(TABLE_MON_HOC, values, COL_MON_HOC_ID + " = ?",
                 new String[]{String.valueOf(monHoc.getId())});
@@ -173,7 +246,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<MonHoc> getAllMonHoc() {
         List<MonHoc> list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_MON_HOC + " ORDER BY " + COL_TEN_MON + " ASC", null);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_MON_HOC + " ORDER BY " + COL_MON_HOC_ID + " ASC", null);
 
         if (cursor.moveToFirst()) {
             do {
@@ -182,7 +255,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         cursor.getString(cursor.getColumnIndexOrThrow(COL_MA_MON)),
                         cursor.getString(cursor.getColumnIndexOrThrow(COL_TEN_MON)),
                         cursor.getInt(cursor.getColumnIndexOrThrow(COL_SO_TIN_CHI)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_MAU_SAC))
+                        cursor.getString(cursor.getColumnIndexOrThrow(COL_MAU_SAC)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COL_LOP_HOC)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COL_MH_GIANG_VIEN)),
+                        cursor.getInt(cursor.getColumnIndexOrThrow(COL_TONG_SO_TUAN)),
+                        cursor.getInt(cursor.getColumnIndexOrThrow(COL_SO_TUAN_DA_HOC)),
+                        cursor.getInt(cursor.getColumnIndexOrThrow(COL_SO_BUOI_VANG)),
+                        cursor.getFloat(cursor.getColumnIndexOrThrow(COL_DIEM_QUA_TRINH)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COL_TRANG_THAI))
                 );
                 list.add(item);
             } while (cursor.moveToNext());
@@ -197,18 +277,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public long insertLichHoc(LichHoc lichHoc) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COL_LH_MON_HOC_ID, lichHoc.getMonHocId());
-        values.put(COL_THU, lichHoc.getThu());
-        values.put(COL_TIET_BAT_DAU, lichHoc.getTietBatDau());
-        values.put(COL_SO_TIET, lichHoc.getSoTiet());
-        values.put(COL_PHONG_HOC, lichHoc.getPhongHoc());
-        values.put(COL_GIANG_VIEN, lichHoc.getGiangVien());
-        values.put(COL_HOC_KY, lichHoc.getHocKy());
-        values.put(COL_NAM_HOC, lichHoc.getNamHoc());
-        values.put(COL_TUAN_HOC, lichHoc.getTuanHoc());
-
-        return db.insert(TABLE_LICH_HOC, null, values);
+        return insertLichHocInternal(db, lichHoc);
     }
 
     public int updateLichHoc(LichHoc lichHoc) {
@@ -309,15 +378,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public long insertLichThi(LichThi lichThi) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COL_LT_MON_HOC_ID, lichThi.getMonHocId());
-        values.put(COL_NGAY_GIO_THI, lichThi.getNgayGioThi());
-        values.put(COL_PHONG_THI, lichThi.getPhongThi());
-        values.put(COL_HINH_THUC_THI, lichThi.getHinhThucThi());
-        values.put(COL_SBD, lichThi.getSbd());
-        values.put(COL_GHI_CHU_THI, lichThi.getGhiChu());
+        return insertLichThiInternal(db, lichThi);
+    }
 
-        return db.insert(TABLE_LICH_THI, null, values);
+    public int deleteLichThi(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_LICH_THI, COL_LICH_THI_ID + " = ?",
+                new String[]{String.valueOf(id)});
     }
 
     public List<LichThi> getAllLichThiWithMonHoc() {
@@ -356,14 +423,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public long insertThongBao(ThongBao thongBao) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COL_TIEU_DE, thongBao.getTieuDe());
-        values.put(COL_NOI_DUNG, thongBao.getNoiDung());
-        values.put(COL_NGAY_DANG, thongBao.getNgayDang());
-        values.put(COL_LOAI_THONG_BAO, thongBao.getLoaiThongBao());
-        values.put(COL_DA_DOC, thongBao.getDaDoc());
-
-        return db.insert(TABLE_THONG_BAO, null, values);
+        return insertThongBaoInternal(db, thongBao);
     }
 
     public int markThongBaoDaDoc(int id) {
@@ -372,6 +432,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COL_DA_DOC, 1);
 
         return db.update(TABLE_THONG_BAO, values, COL_THONG_BAO_ID + " = ?",
+                new String[]{String.valueOf(id)});
+    }
+
+    public int markAllThongBaoDaDoc() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_DA_DOC, 1);
+        return db.update(TABLE_THONG_BAO, values, null, null);
+    }
+
+    public int deleteThongBao(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_THONG_BAO, COL_THONG_BAO_ID + " = ?",
                 new String[]{String.valueOf(id)});
     }
 
@@ -388,7 +461,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         cursor.getString(cursor.getColumnIndexOrThrow(COL_NOI_DUNG)),
                         cursor.getString(cursor.getColumnIndexOrThrow(COL_NGAY_DANG)),
                         cursor.getString(cursor.getColumnIndexOrThrow(COL_LOAI_THONG_BAO)),
-                        cursor.getInt(cursor.getColumnIndexOrThrow(COL_DA_DOC))
+                        cursor.getInt(cursor.getColumnIndexOrThrow(COL_DA_DOC)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COL_NGUON_TB)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COL_PHONG_CU)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COL_PHONG_MOI))
                 );
                 list.add(item);
             } while (cursor.moveToNext());

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="36dp"
+    android:height="36dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Rounded square background with Stitch Indigo-Blue gradient -->
+    <path android:pathData="M24,0 L76,0 A24,24 0 0,1 100,24 L100,76 A24,24 0 0,1 76,100 L24,100 A24,24 0 0,1 0,76 L0,24 A24,24 0 0,1 24,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="100"
+                android:endY="100"
+                android:startX="0"
+                android:startY="0"
+                android:type="linear">
+                <item
+                    android:color="#FF4F46E5"
+                    android:offset="0.0" />
+                <item
+                    android:color="#FF3B82F6"
+                    android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Graduation cap & calendar clock motif from Stitch SVG -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M50,24 L78,37 L50,50 L22,37 Z" />
+    <path
+        android:fillAlpha="0.9"
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M32,44.5 L32,58 C32,66 68,66 68,58 L68,44.5 L50,52 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M78,37 L78,54 C78,56 75,58 73,58 C71,58 68,56 68,54 L68,42"
+        android:strokeWidth="3"
+        android:strokeColor="#FFFDE047"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#FFFDE047"
+        android:pathData="M73,62 m-3,0 a3,3 0 1,1 6,0 a3,3 0 1,1 -6,0" />
+    <path
+        android:fillAlpha="0.2"
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M50,74 m-14,0 a14,14 0 1,1 28,0 a14,14 0 1,1 -28,0" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M50,67 L50,74 L56,74"
+        android:strokeWidth="2.5"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

@@ -13,21 +13,20 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Logo TDMU & Header -->
+        <!-- Logo EduSchedule Stitch SVG -->
         <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:contentDescription="TDMU Logo"
-            android:src="@drawable/ic_home"
-            app:tint="@color/primary" />
+            android:layout_width="84dp"
+            android:layout_height="84dp"
+            android:contentDescription="EduSchedule Logo"
+            android:src="@drawable/ic_eduschedule_logo" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="ĐĂNG NHẬP SINH VIÊN TDMU"
+            android:layout_marginTop="14dp"
+            android:text="EduSchedule TDMU"
             android:textColor="@color/primary"
-            android:textSize="20sp"
+            android:textSize="24sp"
             android:textStyle="bold" />
 
         <TextView
@@ -35,7 +34,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:gravity="center"
-            android:text="Ứng dụng quản lý thời khóa biểu và thông báo học tập"
+            android:text="Ứng dụng quản lý thời khóa biểu và thông báo học tập dành cho sinh viên"
             android:textColor="@color/text_secondary"
             android:textSize="14sp" />
 
@@ -44,9 +43,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="@color/surface_container_lowest"
+            app:cardCornerRadius="20dp"
             app:cardElevation="3dp"
-            app:strokeWidth="0dp">
+            app:strokeColor="@color/surface_container_high"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -54,19 +55,30 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Đăng nhập cổng sinh viên"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
                 <!-- Email -->
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Email Sinh viên (@student.tdmu.edu.vn)">
+                    android:hint="Email Sinh viên (@student.tdmu.edu.vn)"
+                    app:startIconDrawable="@drawable/ic_mail"
+                    app:startIconTint="@color/primary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_login_email"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textEmailAddress"
-                        android:text="21111000@student.tdmu.edu.vn" />
+                        android:text="21020485@student.tdmu.edu.vn" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Mật khẩu -->
@@ -76,7 +88,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:hint="Mật khẩu"
-                    app:passwordToggleEnabled="true">
+                    app:passwordToggleEnabled="true"
+                    app:startIconDrawable="@drawable/ic_lock"
+                    app:startIconTint="@color/primary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_login_password"
@@ -93,11 +107,14 @@
                     android:layout_height="52dp"
                     android:layout_marginTop="20dp"
                     android:backgroundTint="@color/primary"
-                    android:text="🔑 ĐĂNG NHẬP"
+                    android:text="ĐĂNG NHẬP HỆ THỐNG"
                     android:textColor="@color/white"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"
-                    app:cornerRadius="12dp" />
+                    app:cornerRadius="12dp"
+                    app:icon="@drawable/ic_login"
+                    app:iconGravity="textStart"
+                    app:iconTint="@color/white" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -109,8 +126,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Bỏ qua, Trải nghiệm chế độ Khách ➔"
-            android:textColor="@color/text_secondary" />
+            android:text="Trải nghiệm nhanh với hồ sơ mẫu"
+            android:textColor="@color/primary"
+            app:icon="@drawable/ic_arrow_forward"
+            app:iconGravity="end"
+            app:iconTint="@color/primary" />
 
     </LinearLayout>
 </ScrollView>

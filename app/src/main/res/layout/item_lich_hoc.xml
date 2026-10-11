@@ -4,25 +4,25 @@
     android:id="@+id/card_item_lich"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="12dp"
     android:layout_marginVertical="6dp"
-    app:cardCornerRadius="14dp"
+    app:cardBackgroundColor="@color/surface_container_lowest"
+    app:cardCornerRadius="18dp"
     app:cardElevation="2dp"
-    app:strokeColor="@color/primary"
-    app:strokeWidth="0dp">
+    app:strokeColor="@color/surface_container_high"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="12dp">
+        android:padding="14dp">
 
         <!-- Dải màu chỉ thị môn học bên trái -->
         <View
             android:id="@+id/view_color_strip"
-            android:layout_width="6dp"
-            android:layout_height="64dp"
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
             android:background="@color/primary" />
 
         <!-- CheckBox chọn hàng loạt -->
@@ -35,67 +35,62 @@
             android:focusable="false"
             android:visibility="gone" />
 
-        <!-- CỘT 1 (BÊN TRÁI): Cột Mốc Thời Gian & Ca Học -->
-        <LinearLayout
-            android:layout_width="110dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tv_tiet_hoc"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="13:00 - 15:30"
-                android:textColor="@color/primary"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tv_buoi_ca_badge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:background="@color/card_bg_blue"
-                android:paddingHorizontal="6dp"
-                android:paddingVertical="2dp"
-                android:text="Ca 3 • Tiết 7-9"
-                android:textColor="@color/primary_dark"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tv_status_badge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:background="@color/primary"
-                android:paddingHorizontal="6dp"
-                android:paddingVertical="2dp"
-                android:text="Sắp diễn ra"
-                android:textColor="@color/white"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:visibility="gone" />
-        </LinearLayout>
-
-        <!-- Đường kẻ phân cách dịu nhẹ giữa 2 cột -->
-        <View
-            android:layout_width="1dp"
-            android:layout_height="50dp"
-            android:layout_marginHorizontal="10dp"
-            android:background="@color/surface_container_high" />
-
-        <!-- CỘT 2 (BÊN PHẢI): Thông tin Môn Học & Phòng Học Pastel -->
+        <!-- Nội dung Timeline Card chuẩn Stitch -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
+            <!-- Hàng 1: Phòng học + Tiết học + Trạng thái -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_phong_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_badge_primary_fixed"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="B2-405"
+                    android:textColor="@color/primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_buoi_ca_badge"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="Tiết 4 - 6 • Ca Sáng"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_status_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_pill_surface_high"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="3dp"
+                    android:text="Sắp diễn ra"
+                    android:textColor="@color/primary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Hàng 2: Tên môn học + Mã môn -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -104,63 +99,96 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="An ninh mạng"
+                    android:text="Phát triển ứng dụng di động"
                     android:textColor="@color/text_primary"
-                    android:textSize="15sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tv_ma_mon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@color/primary_light"
-                    android:paddingHorizontal="6dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_pill_secondary"
+                    android:paddingHorizontal="8dp"
                     android:paddingVertical="2dp"
-                    android:text="CNTT001"
-                    android:textColor="@color/primary_dark"
+                    android:text="LING189"
+                    android:textColor="@color/on_secondary_fixed"
                     android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- Hàng 3: Giảng viên với Vector Icon -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <!-- Badge Phòng Học Nổi Bật -->
-                <TextView
-                    android:id="@+id/tv_phong_badge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@color/card_bg_green"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="3dp"
-                    android:text="Phòng I4.112"
-                    android:textColor="#2E7D32"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                <ImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:contentDescription="Giảng viên"
+                    android:src="@drawable/ic_person"
+                    app:tint="@color/text_muted" />
 
                 <TextView
                     android:id="@+id/tv_giang_vien"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="GV: L.T.M.Trí"
+                    android:layout_marginStart="5dp"
+                    android:text="TS. Nguyễn Hoàng Nam • Khoa CNTT"
                     android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="13sp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tv_thu"
-                android:layout_width="wrap_content"
+            <!-- Hàng 4: Khung giờ & Thứ/Ngày học với Vector Icon -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Thứ 2 (19/10)"
-                android:textColor="@color/text_secondary"
-                android:textSize="11sp"
-                android:visibility="gone" />
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:contentDescription="Giờ học"
+                    android:src="@drawable/ic_schedule"
+                    app:tint="@color/primary" />
+
+                <TextView
+                    android:id="@+id/tv_tiet_hoc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="09:30 - 11:45"
+                    android:textColor="@color/primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:contentDescription="Ngày học"
+                    android:src="@drawable/ic_apartment"
+                    app:tint="@color/text_muted" />
+
+                <TextView
+                    android:id="@+id/tv_thu"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="Thứ 3 (15/10)"
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

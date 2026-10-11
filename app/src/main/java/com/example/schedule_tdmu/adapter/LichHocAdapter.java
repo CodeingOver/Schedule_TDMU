@@ -29,7 +29,7 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
     private OnSelectionChangedListener selectionListener;
     private Date weekStartDate;
     private boolean isSelectionMode = false;
-    private boolean showStatusTags = false;
+    private boolean showStatusTags = true;
     private final Set<Integer> selectedIds = new HashSet<>();
 
     public interface OnLichHocClickListener {
@@ -134,11 +134,12 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
         holder.tvMaMon.setText(item.getMaMon() != null ? item.getMaMon() : "");
 
         if (holder.tvPhongBadge != null) {
-            holder.tvPhongBadge.setText("Phòng " + (item.getPhongHoc() != null ? item.getPhongHoc() : "TDMU"));
+            holder.tvPhongBadge.setText(item.getPhongHoc() != null && !item.getPhongHoc().isEmpty() ? item.getPhongHoc() : "Phòng TDMU");
         }
 
         if (holder.tvGiangVien != null) {
-            holder.tvGiangVien.setText("GV: " + (item.getGiangVien() != null ? item.getGiangVien() : "N/A"));
+            String gv = item.getGiangVien() != null && !item.getGiangVien().isEmpty() ? item.getGiangVien() : "Giảng viên TDMU";
+            holder.tvGiangVien.setText(gv + " • Khoa CNTT");
         }
 
         int tietStart = item.getTietBatDau();
@@ -148,30 +149,20 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
             holder.tvTietHoc.setText(getTdmuPeriodTime(tietStart, tietEnd));
         }
 
-        // TDMU Buổi & Ca Học Badge
         if (holder.tvBuoiCaBadge != null) {
-            holder.tvBuoiCaBadge.setVisibility(View.VISIBLE);
+            String caText;
             if (tietStart <= 3) {
-                holder.tvBuoiCaBadge.setText("☀️ Sáng • Ca 1");
-                holder.tvBuoiCaBadge.setBackgroundColor(Color.parseColor("#FFF3E0"));
-                holder.tvBuoiCaBadge.setTextColor(Color.parseColor("#E65100"));
+                caText = "Tiết " + tietStart + " - " + tietEnd + " • Ca 1 Sáng";
             } else if (tietStart <= 6) {
-                holder.tvBuoiCaBadge.setText("☀️ Sáng • Ca 2");
-                holder.tvBuoiCaBadge.setBackgroundColor(Color.parseColor("#FFF3E0"));
-                holder.tvBuoiCaBadge.setTextColor(Color.parseColor("#E65100"));
+                caText = "Tiết " + tietStart + " - " + tietEnd + " • Ca 2 Sáng";
             } else if (tietStart <= 9) {
-                holder.tvBuoiCaBadge.setText("⛅ Chiều • Ca 3");
-                holder.tvBuoiCaBadge.setBackgroundColor(Color.parseColor("#E3F2FD"));
-                holder.tvBuoiCaBadge.setTextColor(Color.parseColor("#0D47A1"));
+                caText = "Tiết " + tietStart + " - " + tietEnd + " • Ca 3 Chiều";
             } else if (tietStart <= 12) {
-                holder.tvBuoiCaBadge.setText("⛅ Chiều • Ca 4");
-                holder.tvBuoiCaBadge.setBackgroundColor(Color.parseColor("#E3F2FD"));
-                holder.tvBuoiCaBadge.setTextColor(Color.parseColor("#0D47A1"));
+                caText = "Tiết " + tietStart + " - " + tietEnd + " • Ca 4 Chiều";
             } else {
-                holder.tvBuoiCaBadge.setText("🌙 Tối • Ca 5");
-                holder.tvBuoiCaBadge.setBackgroundColor(Color.parseColor("#F3E5F5"));
-                holder.tvBuoiCaBadge.setTextColor(Color.parseColor("#4A148C"));
+                caText = "Tiết " + tietStart + " - " + tietEnd + " • Ca Tối";
             }
+            holder.tvBuoiCaBadge.setText(caText);
         }
 
         String thuText = item.getThu() == 8 ? "Chủ Nhật" : "Thứ " + item.getThu();
@@ -187,6 +178,7 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
             thuText += " (" + sdf.format(cal.getTime()) + ")";
         }
         if (holder.tvThu != null) {
+            holder.tvThu.setVisibility(View.VISIBLE);
             holder.tvThu.setText(thuText);
         }
 
@@ -197,43 +189,47 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
             }
         }
 
-        // Tag Trạng Thái Thực Tế: Sắp diễn ra / Đang diễn ra / Đã qua
-        if (showStatusTags && holder.tvStatusBadge != null) {
+        if (holder.tvStatusBadge != null) {
             holder.tvStatusBadge.setVisibility(View.VISIBLE);
             Calendar calNow = Calendar.getInstance();
             int nowMinutes = calNow.get(Calendar.HOUR_OF_DAY) * 60 + calNow.get(Calendar.MINUTE);
-
             int startMinutes = getPeriodStartMinutes(tietStart);
             int endMinutes = getPeriodEndMinutes(tietEnd);
 
-            if (nowMinutes < startMinutes) {
-                holder.tvStatusBadge.setText("Sắp diễn ra");
-                holder.tvStatusBadge.setBackgroundColor(Color.parseColor("#1976D2"));
-            } else if (nowMinutes <= endMinutes) {
+            if (nowMinutes > endMinutes) {
+                holder.tvStatusBadge.setText("Đã hoàn thành");
+                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_surface_high);
+                holder.tvStatusBadge.setTextColor(Color.parseColor("#464555"));
+            } else if (nowMinutes >= startMinutes && nowMinutes <= endMinutes) {
                 holder.tvStatusBadge.setText("Đang diễn ra");
-                holder.tvStatusBadge.setBackgroundColor(Color.parseColor("#2E7D32"));
+                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_tertiary);
+                holder.tvStatusBadge.setTextColor(Color.parseColor("#005338"));
+            } else if (tietStart >= 7) {
+                holder.tvStatusBadge.setText("Buổi chiều");
+                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_secondary);
+                holder.tvStatusBadge.setTextColor(Color.parseColor("#0058BE"));
             } else {
-                holder.tvStatusBadge.setText("Đã qua");
-                holder.tvStatusBadge.setBackgroundColor(Color.parseColor("#757575"));
+                int diff = Math.max(5, startMinutes - nowMinutes);
+                if (diff <= 90) {
+                    holder.tvStatusBadge.setText("Sắp diễn ra (" + diff + "p)");
+                } else {
+                    holder.tvStatusBadge.setText("Sắp diễn ra");
+                }
+                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_error);
+                holder.tvStatusBadge.setTextColor(Color.parseColor("#BA1A1A"));
             }
-        } else if (holder.tvStatusBadge != null) {
-            holder.tvStatusBadge.setVisibility(View.GONE);
         }
 
-        // Chế độ Chọn Hàng Loạt
         if (isSelectionMode) {
             holder.cbSelect.setVisibility(View.VISIBLE);
             boolean isChecked = selectedIds.contains(item.getId());
             holder.cbSelect.setChecked(isChecked);
-
-            if (isChecked) {
-                holder.cardItemLich.setStrokeWidth(4);
-            } else {
-                holder.cardItemLich.setStrokeWidth(0);
-            }
+            holder.cardItemLich.setStrokeWidth(isChecked ? 4 : 2);
+            holder.cardItemLich.setStrokeColor(Color.parseColor(isChecked ? "#3525CD" : "#E2E7FF"));
         } else {
             holder.cbSelect.setVisibility(View.GONE);
-            holder.cardItemLich.setStrokeWidth(0);
+            holder.cardItemLich.setStrokeWidth(2);
+            holder.cardItemLich.setStrokeColor(Color.parseColor("#E2E7FF"));
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -255,21 +251,18 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
         });
     }
 
-    private int getPeriodStartMinutes(int start) {
-        if (start == 4) return 9 * 60 + 45;
+    public static int getPeriodStartMinutes(int start) {
+        if (start == 4) return 9 * 60 + 30;
         if (start == 7) return 13 * 60;
-        if (start == 10) return 15 * 60 + 45;
+        if (start == 10) return 15 * 60 + 30;
         return 7 * 60;
     }
 
-    private int getPeriodEndMinutes(int end) {
-        if (end == 3) return 9 * 60 + 30;
-        if (end == 5) return 11 * 60 + 25;
-        if (end == 6) return 12 * 60 + 15;
-        if (end == 9) return 15 * 60 + 30;
-        if (end == 11) return 17 * 60 + 25;
-        if (end == 12) return 18 * 60 + 15;
-        return 11 * 60 + 25;
+    public static int getPeriodEndMinutes(int end) {
+        if (end <= 3) return 9 * 60 + 15;
+        if (end <= 6) return 11 * 60 + 45;
+        if (end <= 9) return 15 * 60 + 30;
+        return 17 * 60 + 45;
     }
 
     private void toggleSelection(int id) {
@@ -284,19 +277,17 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
         }
     }
 
-    private String getTdmuPeriodTime(int start, int end) {
+    public static String getTdmuPeriodTime(int start, int end) {
         String startTime = "07:00";
-        if (start == 4) startTime = "09:45";
+        if (start == 4) startTime = "09:30";
         else if (start == 7) startTime = "13:00";
-        else if (start == 10) startTime = "15:45";
+        else if (start == 10) startTime = "15:30";
 
-        String endTime = "09:30";
-        if (end == 3) endTime = "09:30";
-        else if (end == 5) endTime = "11:25";
-        else if (end == 6) endTime = "12:15";
-        else if (end == 9) endTime = "15:30";
-        else if (end == 11) endTime = "17:25";
-        else if (end == 12) endTime = "18:15";
+        String endTime = "09:15";
+        if (end <= 3) endTime = "09:15";
+        else if (end <= 6) endTime = "11:45";
+        else if (end <= 9) endTime = "15:30";
+        else endTime = "17:45";
 
         return startTime + " - " + endTime;
     }

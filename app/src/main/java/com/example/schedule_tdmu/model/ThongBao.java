@@ -5,27 +5,39 @@ public class ThongBao {
     private String tieuDe;
     private String noiDung;
     private String ngayDang;
-    private String loaiThongBao;
+    private String loaiThongBao; // URGENT, EXAM, SCHEDULE, GENERAL
     private int daDoc; // 0: chưa đọc, 1: đã đọc
+    private String nguonThongBao;
+    private String phongCu;
+    private String phongMoi;
 
     public ThongBao() {
     }
 
     public ThongBao(int id, String tieuDe, String noiDung, String ngayDang, String loaiThongBao, int daDoc) {
+        this(id, tieuDe, noiDung, ngayDang, loaiThongBao, daDoc, "Khoa CNTT", "", "");
+    }
+
+    public ThongBao(int id, String tieuDe, String noiDung, String ngayDang, String loaiThongBao,
+                    int daDoc, String nguonThongBao, String phongCu, String phongMoi) {
         this.id = id;
         this.tieuDe = tieuDe;
         this.noiDung = noiDung;
         this.ngayDang = ngayDang;
         this.loaiThongBao = loaiThongBao;
         this.daDoc = daDoc;
+        this.nguonThongBao = nguonThongBao;
+        this.phongCu = phongCu;
+        this.phongMoi = phongMoi;
     }
 
     public ThongBao(String tieuDe, String noiDung, String ngayDang, String loaiThongBao) {
-        this.tieuDe = tieuDe;
-        this.noiDung = noiDung;
-        this.ngayDang = ngayDang;
-        this.loaiThongBao = loaiThongBao;
-        this.daDoc = 0;
+        this(0, tieuDe, noiDung, ngayDang, loaiThongBao, 0, "Khoa CNTT", "", "");
+    }
+
+    public ThongBao(String tieuDe, String noiDung, String ngayDang, String loaiThongBao,
+                    String nguonThongBao, String phongCu, String phongMoi) {
+        this(0, tieuDe, noiDung, ngayDang, loaiThongBao, 0, nguonThongBao, phongCu, phongMoi);
     }
 
     public int getId() {
@@ -61,7 +73,7 @@ public class ThongBao {
     }
 
     public String getLoaiThongBao() {
-        return loaiThongBao;
+        return loaiThongBao != null ? loaiThongBao : "Chung";
     }
 
     public void setLoaiThongBao(String loaiThongBao) {
@@ -78,5 +90,29 @@ public class ThongBao {
 
     public boolean isDaDoc() {
         return daDoc == 1;
+    }
+
+    public String getNguonThongBao() {
+        return nguonThongBao != null && !nguonThongBao.isEmpty() ? nguonThongBao : "Phòng Đào tạo TDMU";
+    }
+
+    public void setNguonThongBao(String nguonThongBao) {
+        this.nguonThongBao = nguonThongBao;
+    }
+
+    public String getPhongCu() {
+        return phongCu != null ? phongCu : "";
+    }
+
+    public void setPhongCu(String phongCu) {
+        this.phongCu = phongCu;
+    }
+
+    public String getPhongMoi() {
+        return phongMoi != null ? phongMoi : "";
+    }
+
+    public void setPhongMoi(String phongMoi) {
+        this.phongMoi = phongMoi;
     }
 }

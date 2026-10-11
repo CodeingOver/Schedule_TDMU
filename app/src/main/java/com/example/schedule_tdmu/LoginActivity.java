@@ -7,6 +7,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.schedule_tdmu.utils.SharedPrefManager;
 
@@ -18,11 +19,11 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         super.onCreate(savedInstanceState);
 
         prefManager = new SharedPrefManager(this);
 
-        // Nếu đã đăng nhập trước đó -> Vào thẳng MainActivity
         if (prefManager.isLoggedIn()) {
             startActivity(new Intent(this, MainActivity.class));
             finish();
@@ -39,8 +40,9 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(v -> performLogin());
 
         btnSkipLogin.setOnClickListener(v -> {
-            prefManager.saveUserSession("khach@student.tdmu.edu.vn", "Sinh viên Khách", "student");
-            Toast.makeText(this, "Đã truy cập với chế độ Khách", Toast.LENGTH_SHORT).show();
+            prefManager.saveUserSession("21020485@student.tdmu.edu.vn", "Nguyễn Minh Anh", "student");
+            prefManager.setStudentMssv("21020485");
+            Toast.makeText(this, "Đã đăng nhập với hồ sơ Nguyễn Minh Anh", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, MainActivity.class));
             finish();
         });
@@ -51,7 +53,7 @@ public class LoginActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
 
         if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập Email và Mật khẩu!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Vui lòng nhập đầy đủ Email và Mật khẩu!", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -60,17 +62,23 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Xác định vai trò
         String role = "student";
         if (email.equalsIgnoreCase("admin@tdmu.edu.vn") || (!email.contains("student") && email.endsWith("@tdmu.edu.vn"))) {
             role = "admin";
         }
 
         String username = email.split("@")[0];
-        String displayName = role.equals("admin") ? "Quản trị viên (" + username + ")" : "Sinh viên " + username;
+        String displayName;
+        if (role.equals("admin")) {
+            displayName = "Quản trị viên (" + username + ")";
+        } else if ("21020485".equals(username) || "21111000".equals(username)) {
+            displayName = "Nguyễn Minh Anh";
+        } else {
+            displayName = "Sinh viên " + username;
+        }
 
         prefManager.saveUserSession(email, displayName, role);
-        Toast.makeText(this, "Đăng nhập thành công với vai trò " + (role.equals("admin") ? "ADMIN" : "SINH VIÊN"), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Đăng nhập thành công (" + (role.equals("admin") ? "Quản trị viên" : "Sinh viên") + ")", Toast.LENGTH_SHORT).show();
 
         startActivity(new Intent(this, MainActivity.class));
         finish();
