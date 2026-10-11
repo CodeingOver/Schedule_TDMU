@@ -102,7 +102,7 @@ public class NotificationFragment extends Fragment {
             Toast.makeText(requireContext(), "Đã đánh dấu đọc tất cả thông báo", Toast.LENGTH_SHORT).show();
         });
 
-        btnAddNotification.setOnClickListener(v -> showAddNotificationDialog());
+        btnAddNotification.setOnClickListener(v -> showAddOrEditNotificationDialog(null));
 
         btnUrgentViewSchedule.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {
@@ -111,8 +111,12 @@ public class NotificationFragment extends Fragment {
         });
 
         btnSyncNow.setOnClickListener(v -> {
+            int syncedCount = NotificationHelper.syncAllScheduleReminders(requireContext());
             loadNotifications();
-            Toast.makeText(requireContext(), "Đã đồng bộ thông báo & phòng học mới nhất với TKB", Toast.LENGTH_SHORT).show();
+            notifyHeaderBadgeChanged();
+            Toast.makeText(requireContext(),
+                    "Đã đồng bộ " + syncedCount + " lịch nhắc học tập & lịch thi từ TKB!",
+                    Toast.LENGTH_SHORT).show();
         });
 
         loadNotifications();
@@ -157,15 +161,16 @@ public class NotificationFragment extends Fragment {
         msg.append(thongBao.getNoiDung());
         if (!thongBao.getPhongCu().isEmpty() || !thongBao.getPhongMoi().isEmpty()) {
             msg.append("\n\nThay đổi phòng: ")
-                    .append(thongBao.getPhongCu())
+                    .append(thongBao.getPhongCu().isEmpty() ? "---" : thongBao.getPhongCu())
                     .append(" -> ")
-                    .append(thongBao.getPhongMoi());
+                    .append(thongBao.getPhongMoi().isEmpty() ? "---" : thongBao.getPhongMoi());
         }
 
         new AlertDialog.Builder(requireContext())
                 .setTitle(thongBao.getTieuDe())
                 .setMessage(msg.toString())
                 .setPositiveButton("Đóng", null)
+                .setNegativeButton("Chỉnh sửa", (d, w) -> showAddOrEditNotificationDialog(thongBao))
                 .setNeutralButton("Xóa thông báo", (d, w) -> {
                     dbHelper.deleteThongBao(thongBao.getId());
                     loadNotifications();
@@ -175,13 +180,17 @@ public class NotificationFragment extends Fragment {
                 .show();
     }
 
-    private void showAddNotificationDialog() {
+    private void showAddOrEditNotificationDialog(@Nullable ThongBao existing) {
+        final boolean isEdit = (existing != null);
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_notification, null);
         builder.setView(dialogView);
 
+        TextView tvDialogTitle = dialogView.findViewById(R.id.tv_notif_dialog_title);
         EditText etTitle = dialogView.findViewById(R.id.et_notification_title);
         Spinner spinnerType = dialogView.findViewById(R.id.spinner_notification_type);
+        EditText etOldRoom = dialogView.findViewById(R.id.et_old_room);
+        EditText etNewRoom = dialogView.findViewById(R.id.et_new_room);
         EditText etContent = dialogView.findViewById(R.id.et_notification_content);
         TextView tvSelectedReminderTime = dialogView.findViewById(R.id.tvSelectedReminderTime);
         Button btnPickReminderDateTime = dialogView.findViewById(R.id.btnPickReminderDateTime);
@@ -192,6 +201,26 @@ public class NotificationFragment extends Fragment {
         ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_dropdown_item, types);
         spinnerType.setAdapter(typeAdapter);
+
+        if (isEdit) {
+            if (tvDialogTitle != null) tvDialogTitle.setText("Chỉnh Sửa Thông Báo Học Tập");
+            etTitle.setText(existing.getTieuDe());
+            etContent.setText(existing.getNoiDung());
+            if (etOldRoom != null) etOldRoom.setText(existing.getPhongCu());
+            if (etNewRoom != null) etNewRoom.setText(existing.getPhongMoi());
+            btnSend.setText("Cập nhật & Nhắc nhở");
+
+            String loai = existing.getLoaiThongBao() != null ? existing.getLoaiThongBao().toUpperCase() : "";
+            if (loai.contains("URGENT") || loai.contains("KHẨN")) {
+                spinnerType.setSelection(0);
+            } else if (loai.contains("EXAM") || loai.contains("THI")) {
+                spinnerType.setSelection(1);
+            } else if (loai.contains("SCHEDULE") || loai.contains("HỌC")) {
+                spinnerType.setSelection(2);
+            } else {
+                spinnerType.setSelection(3);
+            }
+        }
 
         final long[] scheduledMillis = {0L};
         final Calendar selectedCal = Calendar.getInstance();
@@ -222,6 +251,8 @@ public class NotificationFragment extends Fragment {
         btnSend.setOnClickListener(v -> {
             String title = etTitle.getText().toString().trim();
             String content = etContent.getText().toString().trim();
+            String oldRoom = etOldRoom != null ? etOldRoom.getText().toString().trim() : "";
+            String newRoom = etNewRoom != null ? etNewRoom.getText().toString().trim() : "";
             int selectedPos = spinnerType.getSelectedItemPosition();
 
             if (title.isEmpty() || content.isEmpty()) {
@@ -247,8 +278,19 @@ public class NotificationFragment extends Fragment {
 
             String currentDate = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
 
-            ThongBao newNotif = new ThongBao(title, content, currentDate, loaiCode, nguon, "", "");
-            dbHelper.insertThongBao(newNotif);
+            if (isEdit) {
+                existing.setTieuDe(title);
+                existing.setNoiDung(content);
+                existing.setNgayDang(currentDate);
+                existing.setLoaiThongBao(loaiCode);
+                existing.setNguonThongBao(nguon);
+                existing.setPhongCu(oldRoom);
+                existing.setPhongMoi(newRoom);
+                dbHelper.updateThongBao(existing);
+            } else {
+                ThongBao newNotif = new ThongBao(title, content, currentDate, loaiCode, nguon, oldRoom, newRoom);
+                dbHelper.insertThongBao(newNotif);
+            }
 
             long triggerAt = scheduledMillis[0] > System.currentTimeMillis()
                     ? scheduledMillis[0]
@@ -262,7 +304,9 @@ public class NotificationFragment extends Fragment {
                     (int) (System.currentTimeMillis() & 0x7fffffff)
             );
 
-            Toast.makeText(requireContext(), "Đã lưu thông báo và đặt lịch nhắc nhở", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(),
+                    isEdit ? "Đã cập nhật thông báo và đặt lịch nhắc nhở" : "Đã lưu thông báo và đặt lịch nhắc nhở",
+                    Toast.LENGTH_SHORT).show();
             dialog.dismiss();
             loadNotifications();
             notifyHeaderBadgeChanged();

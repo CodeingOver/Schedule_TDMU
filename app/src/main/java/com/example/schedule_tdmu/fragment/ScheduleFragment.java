@@ -435,12 +435,13 @@ public class ScheduleFragment extends Fragment {
 
             if (btnHeroDirections != null) {
                 btnHeroDirections.setOnClickListener(v -> {
+                    String roomGuide = buildTdmuRoomGuide(heroItem.getPhongHoc());
                     new AlertDialog.Builder(getContext())
-                            .setTitle("Chỉ đường: Phòng " + heroItem.getPhongHoc())
-                            .setMessage("Môn học: " + heroItem.getTenMon() + "\n" +
-                                    "Phòng học: " + heroItem.getPhongHoc() + "\n" +
-                                    "Khung giờ: " + timeRange + " (Tiết " + tietStart + " - " + tietEnd + ")\n\n" +
-                                    "Hướng dẫn di chuyển: Đi từ cổng chính TDMU thẳng vào khu giảng đường trung tâm, kiểm tra bảng sơ đồ tầng tại sảnh chính.")
+                            .setTitle("Chỉ dẫn phòng học: " + heroItem.getPhongHoc())
+                            .setMessage("Học phần: " + heroItem.getTenMon() + " (" + heroItem.getMaMon() + ")\n" +
+                                    "Khung giờ: " + timeRange + " (Tiết " + tietStart + " - " + tietEnd + ")\n" +
+                                    "Giảng viên: " + heroItem.getGiangVien() + "\n\n" +
+                                    roomGuide)
                             .setPositiveButton("Đã hiểu", null)
                             .show();
                 });
@@ -686,7 +687,7 @@ public class ScheduleFragment extends Fragment {
                     if (which == 0) {
                         showAddScheduleDialog();
                     } else if (which == 1) {
-                        showAddExamDialog();
+                        showAddOrEditExamDialog(null);
                     } else if (which == 2) {
                         filePickerLauncher.launch("*/*");
                     } else if (which == 3) {
@@ -696,35 +697,117 @@ public class ScheduleFragment extends Fragment {
                 .show();
     }
 
-    private void showAddExamDialog() {
+    private String buildTdmuRoomGuide(String rawRoom) {
+        if (rawRoom == null || rawRoom.trim().isEmpty()) {
+            return "Vị trí: Chưa cập nhật mã phòng học cụ thể.";
+        }
+        String room = rawRoom.trim().toUpperCase();
+        String building = "Khu giảng đường TDMU";
+        String gateHint = "Cổng 1 hoặc Cổng 2 (Đường Trần Văn Ơn)";
+        String floorHint = "Kiểm tra bảng sơ đồ tầng tại sảnh tòa nhà";
+
+        Matcher m = Pattern.compile("^([A-Z]+[0-9]?)[^0-9]*([0-9]{3})").matcher(room);
+        if (m.find()) {
+            String blockCode = m.group(1);
+            String roomNum = m.group(2);
+            if (blockCode != null) {
+                building = "Tòa / Dãy " + blockCode;
+                if (blockCode.startsWith("A3") || blockCode.startsWith("A4") || blockCode.startsWith("A2") || blockCode.startsWith("K23") || blockCode.startsWith("I4")) {
+                    gateHint = "Cổng 5 (Bãi gửi xe phía Bắc)";
+                } else if (blockCode.startsWith("I1") || blockCode.startsWith("I2") || blockCode.startsWith("I3") || blockCode.startsWith("F")) {
+                    gateHint = "Bãi gửi xe trung tâm (cạnh GS25) hoặc Cổng 4";
+                } else if (blockCode.startsWith("A1") || blockCode.startsWith("B")) {
+                    gateHint = "Cổng 1 (Mặt tiền Trần Văn Ơn)";
+                } else if (blockCode.startsWith("C") || blockCode.startsWith("D") || blockCode.startsWith("E")) {
+                    gateHint = "Cổng 2 hoặc Cổng 3";
+                } else if (blockCode.startsWith("G") || blockCode.startsWith("H") || blockCode.startsWith("K1") || blockCode.startsWith("K2")) {
+                    gateHint = "Cổng 3 hoặc Cổng 4";
+                }
+            }
+            if (roomNum != null && roomNum.length() == 3) {
+                char floorDigit = roomNum.charAt(0);
+                if (floorDigit == '1') floorHint = "Tầng Trệt (Phòng " + room + ")";
+                else if (floorDigit == '2') floorHint = "Lầu 1 (Phòng " + room + ")";
+                else if (floorDigit == '3') floorHint = "Lầu 2 (Phòng " + room + ")";
+                else if (floorDigit == '4') floorHint = "Lầu 3 (Phòng " + room + ")";
+                else if (floorDigit == '5') floorHint = "Lầu 4 (Phòng " + room + ")";
+            }
+        }
+
+        return "• Khu vực: " + building + "\n"
+                + "• Tầng / Lầu: " + floorHint + "\n"
+                + "• Cổng & Bãi xe gần nhất: " + gateHint;
+    }
+
+    private void showAddOrEditExamDialog(@Nullable LichThi existing) {
         if (getContext() == null || dbHelper == null) return;
+        boolean isEdit = existing != null;
 
         List<MonHoc> monHocList = dbHelper.getAllMonHoc();
-        if (monHocList.isEmpty()) {
-            Toast.makeText(getContext(), "Vui lòng thêm môn học trước khi tạo lịch thi!", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
         LinearLayout layout = new LinearLayout(getContext());
         layout.setOrientation(LinearLayout.VERTICAL);
         int pad = (int) (20 * getResources().getDisplayMetrics().density);
-        layout.setPadding(pad, pad, pad, pad);
-
-        TextView tvSelectMon = new TextView(getContext());
-        tvSelectMon.setText("Chọn học phần thi:");
-        layout.addView(tvSelectMon);
+        layout.setPadding(pad, pad / 2, pad, 0);
 
         Spinner spMon = new Spinner(getContext());
-        String[] tenMonArr = new String[monHocList.size()];
-        for (int i = 0; i < monHocList.size(); i++) {
-            tenMonArr[i] = monHocList.get(i).getMaMon() + " - " + monHocList.get(i).getTenMon();
+        EditText etNewMaMon = new EditText(getContext());
+        EditText etNewTenMon = new EditText(getContext());
+
+        if (!monHocList.isEmpty()) {
+            TextView tvSelectMon = new TextView(getContext());
+            tvSelectMon.setText("Chọn học phần thi:");
+            layout.addView(tvSelectMon);
+
+            List<String> monOptions = new ArrayList<>();
+            int selectedMonIdx = 0;
+            for (int i = 0; i < monHocList.size(); i++) {
+                MonHoc mh = monHocList.get(i);
+                monOptions.add(mh.getMaMon() + " - " + mh.getTenMon());
+                if (isEdit && mh.getId() == existing.getMonHocId()) {
+                    selectedMonIdx = i;
+                }
+            }
+            monOptions.add("+ Nhập môn học mới...");
+            spMon.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, monOptions));
+            spMon.setSelection(selectedMonIdx);
+            layout.addView(spMon);
+
+            etNewMaMon.setHint("Mã môn mới (VD: LING189)");
+            etNewMaMon.setVisibility(View.GONE);
+            layout.addView(etNewMaMon);
+
+            etNewTenMon.setHint("Tên môn học mới");
+            etNewTenMon.setVisibility(View.GONE);
+            layout.addView(etNewTenMon);
+
+            spMon.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    boolean isNew = position == monHocList.size();
+                    etNewMaMon.setVisibility(isNew ? View.VISIBLE : View.GONE);
+                    etNewTenMon.setVisibility(isNew ? View.VISIBLE : View.GONE);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+        } else {
+            etNewMaMon.setHint("Mã học phần thi (VD: LING189)");
+            layout.addView(etNewMaMon);
+
+            etNewTenMon.setHint("Tên học phần thi");
+            layout.addView(etNewTenMon);
         }
-        spMon.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, tenMonArr));
-        layout.addView(spMon);
 
         EditText etNgayGio = new EditText(getContext());
         etNgayGio.setHint("Ngày giờ thi (Nhấn để chọn hoặc nhập dd/MM/yyyy HH:mm)");
-        etNgayGio.setText("28/10/2026 08:00");
+        if (isEdit && existing.getNgayGioThi() != null) {
+            etNgayGio.setText(existing.getNgayGioThi());
+        } else {
+            SimpleDateFormat sdfDefault = new SimpleDateFormat("dd/MM/yyyy 08:00", Locale.getDefault());
+            etNgayGio.setText(sdfDefault.format(new Date()));
+        }
         etNgayGio.setOnClickListener(v -> {
             Calendar cal = Calendar.getInstance();
             new DatePickerDialog(getContext(), (view, y, m, d) -> {
@@ -738,36 +821,80 @@ public class ScheduleFragment extends Fragment {
 
         EditText etPhong = new EditText(getContext());
         etPhong.setHint("Phòng thi (VD: B2-301)");
+        if (isEdit) etPhong.setText(existing.getPhongThi());
         layout.addView(etPhong);
 
         EditText etHinhThuc = new EditText(getContext());
         etHinhThuc.setHint("Hình thức thi (VD: Trắc nghiệm / Tự luận)");
-        etHinhThuc.setText("Trắc nghiệm & Tự luận");
+        etHinhThuc.setText(isEdit && existing.getHinhThucThi() != null ? existing.getHinhThucThi() : "Trắc nghiệm & Tự luận");
         layout.addView(etHinhThuc);
 
         EditText etSbd = new EditText(getContext());
         etSbd.setHint("Số báo danh (VD: 24)");
-        etSbd.setText("24");
+        etSbd.setText(isEdit && existing.getSbd() != null ? existing.getSbd() : "");
         layout.addView(etSbd);
 
+        EditText etGhiChu = new EditText(getContext());
+        etGhiChu.setHint("Ghi chú phòng thi");
+        etGhiChu.setText(isEdit && existing.getGhiChu() != null ? existing.getGhiChu() : "Mang theo thẻ sinh viên TDMU");
+        layout.addView(etGhiChu);
+
         new AlertDialog.Builder(getContext())
-                .setTitle("Thêm Lịch Thi Chính Thức")
+                .setTitle(isEdit ? "Cập Nhật Lịch Thi" : "Thêm Lịch Thi Chính Thức")
                 .setView(layout)
-                .setPositiveButton("Lưu Lịch Thi", (d, w) -> {
-                    int idx = spMon.getSelectedItemPosition();
-                    MonHoc selectedMon = monHocList.get(Math.max(0, idx));
+                .setPositiveButton(isEdit ? "Lưu Thay Đổi" : "Lưu Lịch Thi", (d, w) -> {
+                    int targetMonId = -1;
+                    String displayTenMon = "";
+
+                    if (monHocList.isEmpty() || spMon.getSelectedItemPosition() == monHocList.size()) {
+                        String maMonNew = etNewMaMon.getText().toString().trim();
+                        String tenMonNew = etNewTenMon.getText().toString().trim();
+                        if (maMonNew.isEmpty() || tenMonNew.isEmpty()) {
+                            Toast.makeText(getContext(), "Vui lòng nhập mã môn và tên môn thi!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        long insertedId = dbHelper.insertMonHoc(new MonHoc(maMonNew, tenMonNew, 3, "#3525CD"));
+                        if (insertedId == -1) {
+                            for (MonHoc mh : dbHelper.getAllMonHoc()) {
+                                if (mh.getMaMon().equalsIgnoreCase(maMonNew)) {
+                                    insertedId = mh.getId();
+                                    break;
+                                }
+                            }
+                        }
+                        targetMonId = (int) insertedId;
+                        displayTenMon = tenMonNew;
+                    } else {
+                        MonHoc selectedMon = monHocList.get(Math.max(0, spMon.getSelectedItemPosition()));
+                        targetMonId = selectedMon.getId();
+                        displayTenMon = selectedMon.getTenMon();
+                    }
+
                     String ngayGio = etNgayGio.getText().toString().trim();
                     String phong = etPhong.getText().toString().trim();
                     String hinhThuc = etHinhThuc.getText().toString().trim();
                     String sbd = etSbd.getText().toString().trim();
+                    String ghiChu = etGhiChu.getText().toString().trim();
 
                     if (ngayGio.isEmpty() || phong.isEmpty()) {
                         Toast.makeText(getContext(), "Vui lòng nhập ngày giờ và phòng thi!", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
-                    dbHelper.insertLichThi(new LichThi(selectedMon.getId(), ngayGio, phong, hinhThuc, sbd, "Mang theo thẻ sinh viên TDMU"));
-                    Toast.makeText(getContext(), "Đã thêm lịch thi môn " + selectedMon.getTenMon(), Toast.LENGTH_SHORT).show();
+                    if (isEdit) {
+                        existing.setMonHocId(targetMonId);
+                        existing.setNgayGioThi(ngayGio);
+                        existing.setPhongThi(phong);
+                        existing.setHinhThucThi(hinhThuc);
+                        existing.setSbd(sbd.isEmpty() ? "---" : sbd);
+                        existing.setGhiChu(ghiChu);
+                        dbHelper.updateLichThi(existing);
+                        Toast.makeText(getContext(), "Đã cập nhật lịch thi môn " + displayTenMon, Toast.LENGTH_SHORT).show();
+                    } else {
+                        dbHelper.insertLichThi(new LichThi(targetMonId, ngayGio, phong, hinhThuc, sbd.isEmpty() ? "---" : sbd, ghiChu));
+                        Toast.makeText(getContext(), "Đã thêm lịch thi môn " + displayTenMon, Toast.LENGTH_SHORT).show();
+                    }
+                    com.example.schedule_tdmu.utils.NotificationHelper.syncAllScheduleReminders(getContext());
                     switchViewMode(2);
                 })
                 .setNegativeButton("Hủy", null)
@@ -818,6 +945,7 @@ public class ScheduleFragment extends Fragment {
             final int finalCount = count;
             new Handler(Looper.getMainLooper()).post(() -> {
                 if (finalCount > 0) {
+                    com.example.schedule_tdmu.utils.NotificationHelper.syncAllScheduleReminders(getContext());
                     Toast.makeText(getContext(), "Đã nhập thành công " + finalCount + " môn học từ File Excel TDMU!", Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(getContext(), "Vui lòng chọn file Excel/CSV TDMU (.xlsx / .csv) hợp lệ!", Toast.LENGTH_SHORT).show();
@@ -1195,6 +1323,49 @@ public class ScheduleFragment extends Fragment {
         return list;
     }
 
+    private void setupPeriodTimePreviewWatcher(EditText etTietBatDau, EditText etSoTiet, TextView tvPreviewTimeRange) {
+        if (etTietBatDau == null || etSoTiet == null || tvPreviewTimeRange == null) return;
+
+        Runnable updatePreview = () -> {
+            try {
+                String s1 = etTietBatDau.getText().toString().trim();
+                String s2 = etSoTiet.getText().toString().trim();
+                if (s1.isEmpty() || s2.isEmpty()) {
+                    tvPreviewTimeRange.setText("Nhập tiết bắt đầu và số tiết để xem khung giờ TDMU");
+                    return;
+                }
+                int tStart = Integer.parseInt(s1);
+                int count = Integer.parseInt(s2);
+                if (tStart < 1 || tStart > 15 || count < 1 || (tStart + count - 1) > 15) {
+                    tvPreviewTimeRange.setText("Tiết học TDMU hợp lệ từ Tiết 1 đến Tiết 15");
+                    return;
+                }
+                int tEnd = tStart + count - 1;
+                String range = LichHocAdapter.getTdmuPeriodTime(tStart, tEnd);
+                tvPreviewTimeRange.setText("Khung giờ học: " + range.replace(" - ", " -> ") + " (Tiết " + tStart + " - " + tEnd + ")");
+            } catch (Exception e) {
+                tvPreviewTimeRange.setText("Khung giờ học: 07:00 -> 09:30 (Tiết 1 - 3)");
+            }
+        };
+
+        android.text.TextWatcher watcher = new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updatePreview.run();
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        };
+
+        etTietBatDau.addTextChangedListener(watcher);
+        etSoTiet.addTextChangedListener(watcher);
+        updatePreview.run();
+    }
+
     private void showFormConfirmStepDialog(List<ParsedSubject> subjects, int currentIndex) {
         if (getContext() == null || subjects == null || subjects.isEmpty() || currentIndex >= subjects.size()) return;
 
@@ -1207,9 +1378,12 @@ public class ScheduleFragment extends Fragment {
         TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
         EditText etMaMon = dialogView.findViewById(R.id.et_ma_mon);
         EditText etTenMon = dialogView.findViewById(R.id.et_ten_mon);
+        EditText etSoTinChi = dialogView.findViewById(R.id.et_so_tin_chi);
         Spinner spinnerThu = dialogView.findViewById(R.id.spinner_thu);
         EditText etTietBatDau = dialogView.findViewById(R.id.et_tiet_bat_dau);
         EditText etSoTiet = dialogView.findViewById(R.id.et_so_tiet);
+        TextView tvPreviewTimeRange = dialogView.findViewById(R.id.tv_preview_time_range);
+        EditText etTuanHoc = dialogView.findViewById(R.id.et_tuan_hoc);
         EditText etPhongHoc = dialogView.findViewById(R.id.et_phong_hoc);
         EditText etGiangVien = dialogView.findViewById(R.id.et_giang_vien);
         Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
@@ -1225,11 +1399,15 @@ public class ScheduleFragment extends Fragment {
 
         etMaMon.setText(currentSubject.maMon);
         etTenMon.setText(currentSubject.tenMon);
+        if (etSoTinChi != null) etSoTinChi.setText("3");
         spinnerThu.setSelection(Math.max(0, currentSubject.thu - 2));
         etTietBatDau.setText(String.valueOf(currentSubject.tietBatDau));
         etSoTiet.setText(String.valueOf(currentSubject.soTiet));
+        if (etTuanHoc != null) etTuanHoc.setText(currentSubject.tuanHoc != null ? currentSubject.tuanHoc : "1-15");
         etPhongHoc.setText(currentSubject.phongHoc);
         etGiangVien.setText(currentSubject.giangVien);
+
+        setupPeriodTimePreviewWatcher(etTietBatDau, etSoTiet, tvPreviewTimeRange);
 
         boolean isLast = (currentIndex == subjects.size() - 1);
         btnSave.setText(isLast ? "Lưu & Hoàn Tất" : "Lưu & Tiếp Theo (" + (currentIndex + 2) + "/" + subjects.size() + ")");
@@ -1242,6 +1420,7 @@ public class ScheduleFragment extends Fragment {
                     saveParsedSubjectToDb(ps.maMon, ps.tenMon, ps.thu, ps.tietBatDau, ps.soTiet, ps.phongHoc, ps.giangVien, ps.tuanHoc);
                     count++;
                 }
+                com.example.schedule_tdmu.utils.NotificationHelper.syncAllScheduleReminders(getContext());
                 Toast.makeText(getContext(), "Đã lưu thành công tất cả " + count + " môn học vào CSDL!", Toast.LENGTH_LONG).show();
                 loadScheduleData();
             });
@@ -1256,6 +1435,9 @@ public class ScheduleFragment extends Fragment {
             String tenMon = etTenMon.getText().toString().trim();
             String tietBDStr = etTietBatDau.getText().toString().trim();
             String soTietStr = etSoTiet.getText().toString().trim();
+            String tuanHocStr = etTuanHoc != null && !etTuanHoc.getText().toString().trim().isEmpty()
+                    ? etTuanHoc.getText().toString().trim()
+                    : currentSubject.tuanHoc;
 
             if (maMon.isEmpty() || tenMon.isEmpty() || tietBDStr.isEmpty() || soTietStr.isEmpty()) {
                 Toast.makeText(getContext(), "Vui lòng nhập đầy đủ thông tin!", Toast.LENGTH_SHORT).show();
@@ -1266,7 +1448,7 @@ public class ScheduleFragment extends Fragment {
             int tietBD = Integer.parseInt(tietBDStr);
             int soTietVal = Integer.parseInt(soTietStr);
 
-            saveParsedSubjectToDb(maMon, tenMon, thu, tietBD, soTietVal, etPhongHoc.getText().toString().trim(), etGiangVien.getText().toString().trim(), currentSubject.tuanHoc);
+            saveParsedSubjectToDb(maMon, tenMon, thu, tietBD, soTietVal, etPhongHoc.getText().toString().trim(), etGiangVien.getText().toString().trim(), tuanHocStr);
 
             dialog.dismiss();
 
@@ -1274,6 +1456,7 @@ public class ScheduleFragment extends Fragment {
                 Toast.makeText(getContext(), "Đã lưu môn [" + tenMon + "]. Chuyển sang môn tiếp theo...", Toast.LENGTH_SHORT).show();
                 showFormConfirmStepDialog(subjects, currentIndex + 1);
             } else {
+                com.example.schedule_tdmu.utils.NotificationHelper.syncAllScheduleReminders(getContext());
                 Toast.makeText(getContext(), "Hoàn tất! Đã lưu toàn bộ " + subjects.size() + " môn học vào CSDL!", Toast.LENGTH_LONG).show();
                 loadScheduleData();
             }
@@ -1453,9 +1636,12 @@ public class ScheduleFragment extends Fragment {
         TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
         EditText etMaMon = dialogView.findViewById(R.id.et_ma_mon);
         EditText etTenMon = dialogView.findViewById(R.id.et_ten_mon);
+        EditText etSoTinChi = dialogView.findViewById(R.id.et_so_tin_chi);
         Spinner spinnerThu = dialogView.findViewById(R.id.spinner_thu);
         EditText etTietBatDau = dialogView.findViewById(R.id.et_tiet_bat_dau);
         EditText etSoTiet = dialogView.findViewById(R.id.et_so_tiet);
+        TextView tvPreviewTimeRange = dialogView.findViewById(R.id.tv_preview_time_range);
+        EditText etTuanHoc = dialogView.findViewById(R.id.et_tuan_hoc);
         EditText etPhongHoc = dialogView.findViewById(R.id.et_phong_hoc);
         EditText etGiangVien = dialogView.findViewById(R.id.et_giang_vien);
         Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
@@ -1469,11 +1655,18 @@ public class ScheduleFragment extends Fragment {
         etMaMon.setEnabled(false);
         etTenMon.setText(item.getTenMon());
         etTenMon.setEnabled(false);
+        if (etSoTinChi != null) {
+            etSoTinChi.setText("3");
+            etSoTinChi.setEnabled(false);
+        }
         spinnerThu.setSelection(Math.max(0, item.getThu() - 2));
         etTietBatDau.setText(String.valueOf(item.getTietBatDau()));
         etSoTiet.setText(String.valueOf(item.getSoTiet()));
+        if (etTuanHoc != null) etTuanHoc.setText(item.getTuanHoc() != null ? item.getTuanHoc() : "1-15");
         etPhongHoc.setText(item.getPhongHoc());
         etGiangVien.setText(item.getGiangVien());
+
+        setupPeriodTimePreviewWatcher(etTietBatDau, etSoTiet, tvPreviewTimeRange);
 
         AlertDialog dialog = builder.create();
         btnCancel.setOnClickListener(v -> dialog.dismiss());
@@ -1484,15 +1677,101 @@ public class ScheduleFragment extends Fragment {
                 Toast.makeText(getContext(), "Vui lòng nhập tiết bắt đầu và số tiết!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            item.setThu(spinnerThu.getSelectedItemPosition() + 2);
-            item.setTietBatDau(Integer.parseInt(tietBDStr));
-            item.setSoTiet(Integer.parseInt(soTietStr));
-            item.setPhongHoc(etPhongHoc.getText().toString().trim());
-            item.setGiangVien(etGiangVien.getText().toString().trim());
-            dbHelper.updateLichHoc(item);
-            Toast.makeText(getContext(), "Đã cập nhật lịch học!", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-            loadScheduleData();
+
+            final int newThu = spinnerThu.getSelectedItemPosition() + 2;
+            final int newTietBD;
+            final int newSoTiet;
+            try {
+                newTietBD = Integer.parseInt(tietBDStr);
+                newSoTiet = Integer.parseInt(soTietStr);
+            } catch (NumberFormatException e) {
+                Toast.makeText(getContext(), "Tiết bắt đầu và số tiết phải là số nguyên!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (newTietBD < 1 || newTietBD > 15 || newSoTiet < 1 || (newTietBD + newSoTiet - 1) > 15) {
+                Toast.makeText(getContext(), "Tiết học TDMU phải nằm trong khoảng Tiết 1 đến Tiết 15!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            final String oldPhong = item.getPhongHoc() != null ? item.getPhongHoc().trim() : "";
+            final int oldThu = item.getThu();
+            final int oldTietBD = item.getTietBatDau();
+            final String newPhong = etPhongHoc.getText().toString().trim();
+            final String newGv = etGiangVien.getText().toString().trim();
+            final String newTuanHoc = etTuanHoc != null && !etTuanHoc.getText().toString().trim().isEmpty()
+                    ? etTuanHoc.getText().toString().trim()
+                    : (item.getTuanHoc() != null ? item.getTuanHoc() : "1-15");
+
+            Runnable commitUpdate = () -> {
+                item.setThu(newThu);
+                item.setTietBatDau(newTietBD);
+                item.setSoTiet(newSoTiet);
+                item.setPhongHoc(newPhong);
+                item.setGiangVien(newGv);
+                item.setTuanHoc(newTuanHoc);
+                dbHelper.updateLichHoc(item);
+
+                boolean roomChanged = !oldPhong.isEmpty() && !newPhong.isEmpty() && !oldPhong.equalsIgnoreCase(newPhong);
+                boolean scheduleShifted = (oldThu != newThu) || (oldTietBD != newTietBD);
+
+                if (roomChanged || scheduleShifted) {
+                    String thuLabel = newThu == 8 ? "Chủ Nhật" : "Thứ " + newThu;
+                    int endTiet = newTietBD + newSoTiet - 1;
+                    String timeRange = LichHocAdapter.getTdmuPeriodTime(newTietBD, endTiet);
+                    String notifTitle = roomChanged
+                            ? ("Thông báo đổi phòng: " + item.getTenMon())
+                            : ("Cập nhật lịch học: " + item.getTenMon());
+                    String notifContent = "Học phần " + item.getTenMon() + " (" + item.getMaMon() + ") được cập nhật sang "
+                            + thuLabel + ", Tiết " + newTietBD + "-" + endTiet + " (" + timeRange + ") tại phòng " + newPhong + ".";
+                    String nowStr = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
+
+                    ThongBao urgentTb = new ThongBao(
+                            notifTitle,
+                            notifContent,
+                            nowStr,
+                            "URGENT",
+                            "Đồng bộ từ Thời khóa biểu",
+                            roomChanged ? oldPhong : "",
+                            roomChanged ? newPhong : ""
+                    );
+                    dbHelper.insertThongBao(urgentTb);
+
+                    com.example.schedule_tdmu.utils.NotificationHelper.scheduleNotification(
+                            getContext(),
+                            notifTitle,
+                            notifContent,
+                            System.currentTimeMillis() + 1200L,
+                            (int) (System.currentTimeMillis() & 0x7fffffff)
+                    );
+
+                    if (getActivity() instanceof MainActivity) {
+                        ((MainActivity) getActivity()).refreshHeaderBadge();
+                    }
+                }
+
+                com.example.schedule_tdmu.utils.NotificationHelper.syncAllScheduleReminders(getContext());
+                Toast.makeText(getContext(), "Đã cập nhật lịch học & đồng bộ nhắc nhở!", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+                loadScheduleData();
+            };
+
+            LichHoc firstConflict = dbHelper.findConflictingLichHoc(newThu, newTietBD, newSoTiet, item.getId());
+            if (firstConflict != null) {
+                int cEnd = firstConflict.getTietBatDau() + firstConflict.getSoTiet() - 1;
+                String thuLabel = newThu == 8 ? "Chủ Nhật" : "Thứ " + newThu;
+                new AlertDialog.Builder(getContext())
+                        .setTitle("Cảnh báo trùng tiết học")
+                        .setMessage("Khung giờ " + thuLabel + " (Tiết " + newTietBD + "-" + (newTietBD + newSoTiet - 1)
+                                + ") bị trùng với môn:\n• " + firstConflict.getTenMon()
+                                + " (Tiết " + firstConflict.getTietBatDau() + "-" + cEnd + ", Phòng " + firstConflict.getPhongHoc() + ").\n\n"
+                                + "Bạn có chắc chắn vẫn muốn lưu thay đổi này không?")
+                        .setPositiveButton("Vẫn lưu", (d, w) -> commitUpdate.run())
+                        .setNegativeButton("Chỉnh lại", null)
+                        .show();
+            } else {
+                commitUpdate.run();
+            }
         });
         dialog.show();
     }
@@ -1511,6 +1790,7 @@ public class ScheduleFragment extends Fragment {
                 .setTitle("Chi Tiết Lịch Thi")
                 .setMessage(message)
                 .setPositiveButton("Đóng", null)
+                .setNegativeButton("Chỉnh sửa", (dialog, which) -> showAddOrEditExamDialog(item))
                 .setNeutralButton("Xóa Lịch Thi", (dialog, which) -> showDeleteLichThiDialog(item))
                 .show();
     }
@@ -1522,6 +1802,7 @@ public class ScheduleFragment extends Fragment {
                 .setMessage("Bạn có chắc chắn muốn xóa môn [" + item.getTenMon() + "] khỏi thời khóa biểu không?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
                     dbHelper.deleteLichHoc(item.getId());
+                    com.example.schedule_tdmu.utils.NotificationHelper.syncAllScheduleReminders(getContext());
                     Toast.makeText(getContext(), "Đã xóa môn " + item.getTenMon() + "!", Toast.LENGTH_SHORT).show();
                     loadScheduleData();
                 })
@@ -1536,6 +1817,7 @@ public class ScheduleFragment extends Fragment {
                 .setMessage("Bạn có chắc chắn muốn xóa lịch thi môn [" + item.getTenMon() + "] không?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
                     dbHelper.deleteLichThi(item.getId());
+                    com.example.schedule_tdmu.utils.NotificationHelper.syncAllScheduleReminders(getContext());
                     Toast.makeText(getContext(), "Đã xóa lịch thi môn " + item.getTenMon() + "!", Toast.LENGTH_SHORT).show();
                     loadScheduleData();
                 })
@@ -1552,9 +1834,12 @@ public class ScheduleFragment extends Fragment {
 
         EditText etMaMon = dialogView.findViewById(R.id.et_ma_mon);
         EditText etTenMon = dialogView.findViewById(R.id.et_ten_mon);
+        EditText etSoTinChi = dialogView.findViewById(R.id.et_so_tin_chi);
         Spinner spinnerThu = dialogView.findViewById(R.id.spinner_thu);
         EditText etTietBatDau = dialogView.findViewById(R.id.et_tiet_bat_dau);
         EditText etSoTiet = dialogView.findViewById(R.id.et_so_tiet);
+        TextView tvPreviewTimeRange = dialogView.findViewById(R.id.tv_preview_time_range);
+        EditText etTuanHoc = dialogView.findViewById(R.id.et_tuan_hoc);
         EditText etPhongHoc = dialogView.findViewById(R.id.et_phong_hoc);
         EditText etGiangVien = dialogView.findViewById(R.id.et_giang_vien);
         Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
@@ -1563,6 +1848,11 @@ public class ScheduleFragment extends Fragment {
         String[] dsThu = {"Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, dsThu);
         spinnerThu.setAdapter(adapter);
+        if (selectedThuFilter >= 2 && selectedThuFilter <= 8) {
+            spinnerThu.setSelection(selectedThuFilter - 2);
+        }
+
+        setupPeriodTimePreviewWatcher(etTietBatDau, etSoTiet, tvPreviewTimeRange);
 
         AlertDialog dialog = builder.create();
 
@@ -1575,34 +1865,83 @@ public class ScheduleFragment extends Fragment {
             String soTietStr = etSoTiet.getText().toString().trim();
 
             if (maMon.isEmpty() || tenMon.isEmpty() || tietBDStr.isEmpty() || soTietStr.isEmpty()) {
-                Toast.makeText(getContext(), "Vui lòng nhập đầy đủ thông tin!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Vui lòng nhập đầy đủ mã môn, tên môn và số tiết!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            int thu = spinnerThu.getSelectedItemPosition() + 2;
-            int tietBD = Integer.parseInt(tietBDStr);
-            int soTiet = Integer.parseInt(soTietStr);
-
-            MonHoc newMon = new MonHoc(maMon, tenMon, 3, "#3525CD");
-            newMon.setGiangVien(etGiangVien.getText().toString().trim());
-            long monHocId = dbHelper.insertMonHoc(newMon);
-            if (monHocId == -1) {
-                List<MonHoc> allMon = dbHelper.getAllMonHoc();
-                for (MonHoc mh : allMon) {
-                    if (mh.getMaMon().equalsIgnoreCase(maMon)) {
-                        monHocId = mh.getId();
-                        break;
-                    }
-                }
+            final int thu = spinnerThu.getSelectedItemPosition() + 2;
+            final int tietBD;
+            final int soTiet;
+            try {
+                tietBD = Integer.parseInt(tietBDStr);
+                soTiet = Integer.parseInt(soTietStr);
+            } catch (NumberFormatException e) {
+                Toast.makeText(getContext(), "Tiết bắt đầu và số tiết phải là số nguyên!", Toast.LENGTH_SHORT).show();
+                return;
             }
 
-            LichHoc lh = new LichHoc((int) monHocId, thu, tietBD, soTiet, etPhongHoc.getText().toString().trim(),
-                    etGiangVien.getText().toString().trim(), 1, "2026-2027", "1-15");
-            dbHelper.insertLichHoc(lh);
+            if (tietBD < 1 || tietBD > 15 || soTiet < 1 || (tietBD + soTiet - 1) > 15) {
+                Toast.makeText(getContext(), "Tiết học TDMU phải nằm trong khoảng Tiết 1 đến Tiết 15!", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-            Toast.makeText(getContext(), "Đã thêm lịch học thành công!", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-            loadScheduleData();
+            int parsedCredits = 3;
+            if (etSoTinChi != null && !etSoTinChi.getText().toString().trim().isEmpty()) {
+                try {
+                    parsedCredits = Math.max(1, Integer.parseInt(etSoTinChi.getText().toString().trim()));
+                } catch (NumberFormatException ignored) {}
+            }
+            final int soTinChi = parsedCredits;
+            final String tuanHoc = (etTuanHoc != null && !etTuanHoc.getText().toString().trim().isEmpty())
+                    ? etTuanHoc.getText().toString().trim()
+                    : "1-15";
+            final String phongHoc = etPhongHoc.getText().toString().trim().isEmpty()
+                    ? "Chưa xếp phòng"
+                    : etPhongHoc.getText().toString().trim();
+            final String giangVien = etGiangVien.getText().toString().trim().isEmpty()
+                    ? "Giảng viên TDMU"
+                    : etGiangVien.getText().toString().trim();
+
+            Runnable commitInsert = () -> {
+                MonHoc newMon = new MonHoc(maMon, tenMon, soTinChi, "#3525CD");
+                newMon.setGiangVien(giangVien);
+                long monHocId = dbHelper.insertMonHoc(newMon);
+                if (monHocId == -1) {
+                    List<MonHoc> allMon = dbHelper.getAllMonHoc();
+                    for (MonHoc mh : allMon) {
+                        if (mh.getMaMon().equalsIgnoreCase(maMon)) {
+                            monHocId = mh.getId();
+                            break;
+                        }
+                    }
+                }
+
+                LichHoc lh = new LichHoc((int) monHocId, thu, tietBD, soTiet, phongHoc,
+                        giangVien, 1, "2026-2027", tuanHoc);
+                dbHelper.insertLichHoc(lh);
+
+                com.example.schedule_tdmu.utils.NotificationHelper.syncAllScheduleReminders(getContext());
+                Toast.makeText(getContext(), "Đã thêm lịch học & đồng bộ nhắc nhở!", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+                loadScheduleData();
+            };
+
+            LichHoc firstConflict = dbHelper.findConflictingLichHoc(thu, tietBD, soTiet, -1);
+            if (firstConflict != null) {
+                int cEnd = firstConflict.getTietBatDau() + firstConflict.getSoTiet() - 1;
+                String thuLabel = thu == 8 ? "Chủ Nhật" : "Thứ " + thu;
+                new AlertDialog.Builder(getContext())
+                        .setTitle("Cảnh báo trùng tiết học")
+                        .setMessage("Khung giờ " + thuLabel + " (Tiết " + tietBD + "-" + (tietBD + soTiet - 1)
+                                + ") bị trùng với môn:\n• " + firstConflict.getTenMon()
+                                + " (Tiết " + firstConflict.getTietBatDau() + "-" + cEnd + ", Phòng " + firstConflict.getPhongHoc() + ").\n\n"
+                                + "Bạn có chắc chắn vẫn muốn thêm môn học này không?")
+                        .setPositiveButton("Vẫn lưu", (d, w) -> commitInsert.run())
+                        .setNegativeButton("Chỉnh lại", null)
+                        .show();
+            } else {
+                commitInsert.run();
+            }
         });
 
         dialog.show();

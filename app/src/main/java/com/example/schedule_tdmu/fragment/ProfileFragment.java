@@ -143,6 +143,7 @@ public class ProfileFragment extends Fragment {
 
         switchAlarmPeriod1.setOnCheckedChangeListener((buttonView, isChecked) -> {
             prefManager.setAlarmPeriod1Enabled(isChecked);
+            com.example.schedule_tdmu.utils.NotificationHelper.syncAllScheduleReminders(requireContext());
             String msg = isChecked
                     ? "Đã bật báo thức tự động lúc 06:15 cho các ngày có Tiết 1"
                     : "Đã tắt báo thức tự động Tiết 1";
@@ -161,7 +162,8 @@ public class ProfileFragment extends Fragment {
     private void selectReminderLeadTime(int minutes) {
         prefManager.setReminderMinutes(minutes);
         updateReminderPillStyles(minutes);
-        Toast.makeText(requireContext(), "Đã đặt nhắc trước giờ học " + minutes + " phút", Toast.LENGTH_SHORT).show();
+        int count = com.example.schedule_tdmu.utils.NotificationHelper.syncAllScheduleReminders(requireContext());
+        Toast.makeText(requireContext(), "Đã đặt nhắc trước giờ học " + minutes + " phút (đồng bộ " + count + " lịch)", Toast.LENGTH_SHORT).show();
     }
 
     private void updateReminderPillStyles(int selectedMinutes) {

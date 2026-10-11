@@ -1,5 +1,8 @@
 package com.example.schedule_tdmu;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -8,6 +11,8 @@ import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -18,6 +23,7 @@ import com.example.schedule_tdmu.fragment.ProfileFragment;
 import com.example.schedule_tdmu.fragment.ScanFragment;
 import com.example.schedule_tdmu.fragment.ScheduleFragment;
 import com.example.schedule_tdmu.fragment.SubjectsFragment;
+import com.example.schedule_tdmu.utils.NotificationHelper;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.card.MaterialCardView;
 
@@ -45,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        requestNotificationPermissionIfNeeded();
 
         dbHelper = new DatabaseHelper(this);
         currentDateBadge = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
@@ -109,6 +117,20 @@ public class MainActivity extends AppCompatActivity {
         }
 
         refreshHeaderBadge();
+        NotificationHelper.syncAllScheduleReminders(this);
+    }
+
+    private void requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        1001
+                );
+            }
+        }
     }
 
     @Override

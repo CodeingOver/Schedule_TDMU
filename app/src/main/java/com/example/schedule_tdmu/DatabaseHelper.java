@@ -372,6 +372,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return list;
     }
 
+    public LichHoc findConflictingLichHoc(int thu, int tietBatDau, int soTiet, int excludeLichHocId) {
+        int newStart = Math.max(1, tietBatDau);
+        int newEnd = newStart + Math.max(1, soTiet) - 1;
+        List<LichHoc> sameDayList = getLichHocByThu(thu);
+        for (LichHoc existing : sameDayList) {
+            if (existing.getId() == excludeLichHocId) continue;
+            int exStart = existing.getTietBatDau();
+            int exEnd = exStart + existing.getSoTiet() - 1;
+            if (newStart <= exEnd && newEnd >= exStart) {
+                return existing;
+            }
+        }
+        return null;
+    }
+
     // ==========================================
     // 3. QUẢN LÝ LỊCH THI (CRUD)
     // ==========================================
@@ -379,6 +394,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public long insertLichThi(LichThi lichThi) {
         SQLiteDatabase db = this.getWritableDatabase();
         return insertLichThiInternal(db, lichThi);
+    }
+
+    public int updateLichThi(LichThi lichThi) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_LT_MON_HOC_ID, lichThi.getMonHocId());
+        values.put(COL_NGAY_GIO_THI, lichThi.getNgayGioThi());
+        values.put(COL_PHONG_THI, lichThi.getPhongThi());
+        values.put(COL_HINH_THUC_THI, lichThi.getHinhThucThi());
+        values.put(COL_SBD, lichThi.getSbd());
+        values.put(COL_GHI_CHU_THI, lichThi.getGhiChu());
+
+        return db.update(TABLE_LICH_THI, values, COL_LICH_THI_ID + " = ?",
+                new String[]{String.valueOf(lichThi.getId())});
     }
 
     public int deleteLichThi(int id) {
@@ -424,6 +453,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public long insertThongBao(ThongBao thongBao) {
         SQLiteDatabase db = this.getWritableDatabase();
         return insertThongBaoInternal(db, thongBao);
+    }
+
+    public int updateThongBao(ThongBao thongBao) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_TIEU_DE, thongBao.getTieuDe());
+        values.put(COL_NOI_DUNG, thongBao.getNoiDung());
+        values.put(COL_NGAY_DANG, thongBao.getNgayDang());
+        values.put(COL_LOAI_THONG_BAO, thongBao.getLoaiThongBao());
+        values.put(COL_DA_DOC, thongBao.getDaDoc());
+        values.put(COL_NGUON_TB, thongBao.getNguonThongBao());
+        values.put(COL_PHONG_CU, thongBao.getPhongCu());
+        values.put(COL_PHONG_MOI, thongBao.getPhongMoi());
+
+        return db.update(TABLE_THONG_BAO, values, COL_THONG_BAO_ID + " = ?",
+                new String[]{String.valueOf(thongBao.getId())});
     }
 
     public int markThongBaoDaDoc(int id) {

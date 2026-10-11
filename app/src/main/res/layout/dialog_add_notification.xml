@@ -24,6 +24,7 @@
                 app:tint="@color/primary" />
 
             <TextView
+                android:id="@+id/tv_notif_dialog_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -65,6 +66,45 @@
             android:layout_marginTop="4dp"
             android:background="@drawable/bg_segmented_container"
             android:paddingHorizontal="10dp" />
+
+        <!-- Thông tin đổi phòng (Tùy chọn cho thông báo khẩn cấp / đổi lịch) -->
+        <LinearLayout
+            android:id="@+id/layout_room_change_inputs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:hint="Phòng cũ (VD: C2-204)">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_old_room"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:hint="Phòng mới (VD: E1-302)">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_new_room"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
 
         <!-- Thời gian nhắc hẹn -->
         <TextView
