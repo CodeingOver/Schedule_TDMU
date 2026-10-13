@@ -82,6 +82,40 @@ public class LichHoc {
         }
     }
 
+    private static long startOfDay(Date date) {
+        if (date == null) return 0;
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTimeInMillis();
+    }
+
+    /**
+     * Kiem tra chinh xac xem lop hoc co dien ra vao dung ngay date hay khong:
+     * 1. Thu cua date phai trung voi thu cua LichHoc.
+     * 2. Ngay date phai nam trong khoang [parsedStartDate, parsedEndDate] (neu co tuanHoc).
+     */
+    public boolean occursOnDate(Date date) {
+        if (date == null) return false;
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        int dow = c.get(Calendar.DAY_OF_WEEK);
+        int thuOfDate = (dow == Calendar.SUNDAY) ? 8 : dow;
+        if (thuOfDate != thu) return false;
+
+        parseDatesIfNeeded();
+        if (parsedStartDate == null || parsedEndDate == null) return true;
+
+        long targetDay = startOfDay(date);
+        long startDay = startOfDay(parsedStartDate);
+        long endDay = startOfDay(parsedEndDate);
+
+        return targetDay >= startDay && targetDay <= endDay;
+    }
+
     public boolean isClassActiveOnDate(Date targetDate) {
         if (targetDate == null) return true;
         parseDatesIfNeeded();

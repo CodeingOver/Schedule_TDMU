@@ -70,6 +70,15 @@ public class NotificationHelper {
         }
     }
 
+    public static boolean canScheduleExactAlarms(Context context) {
+        if (context == null) return false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            return alarmManager != null && alarmManager.canScheduleExactAlarms();
+        }
+        return true;
+    }
+
     /**
      * Đồng bộ tự động toàn bộ lịch học (LichHoc) và lịch thi (LichThi) trong SQLite với AlarmManager.
      * Trả về tổng số nhắc hẹn đã được lập lịch.
@@ -93,11 +102,50 @@ public class NotificationHelper {
             int startMinutesOfDay = LichHocAdapter.getPeriodStartMinutes(tietStart);
             String timeRange = LichHocAdapter.getTdmuPeriodTime(tietStart, tietEnd);
 
-            long nextClassStartMillis = computeNextOccurrenceMillis(lh.getThu(), startMinutesOfDay / 60, startMinutesOfDay % 60);
-            long reminderTriggerMillis = nextClassStartMillis - (reminderLeadMinutes * 60L * 1000L);
+            long targetClassStartMillis = computeNextOccurrenceMillis(lh.getThu(), startMinutesOfDay / 60, startMinutesOfDay % 60);
 
+            // Tìm buổi học tiếp theo mà môn học này thực sự diễn ra (occursOnDate)
+            boolean foundOccurrence = false;
+            for (int w = 0; w < 20; w++) {
+                if (lh.occursOnDate(new Date(targetClassStartMillis))) {
+                    foundOccurrence = true;
+                    break;
+                }
+                targetClassStartMillis += 7L * 24L * 60L * 60L * 1000L;
+            }
+
+            if (!foundOccurrence) {
+                // Môn học này đã kết thúc hoặc không còn buổi nào trong tương lai
+                cancelNotification(context, 10000 + lh.getId());
+                cancelNotification(context, 20000 + lh.getId());
+                continue;
+            }
+
+            long reminderTriggerMillis = targetClassStartMillis - (reminderLeadMinutes * 60L * 1000L);
             if (reminderTriggerMillis <= nowMillis) {
-                reminderTriggerMillis += 7L * 24L * 60L * 60L * 1000L;
+                // Nếu buổi học đó là hôm nay và chưa bắt đầu (nowMillis < targetClassStartMillis)
+                // nhưng đã qua mốc nhắc trước (ví dụ còn 30p mà lead time là 45p):
+                if (targetClassStartMillis > nowMillis) {
+                    reminderTriggerMillis = nowMillis + 2000L; // Nhắc ngay sau 2s
+                } else {
+                    // Nếu buổi học đã qua, chuyển sang tuần tiếp theo
+                    long nextWeekStartMillis = targetClassStartMillis + 7L * 24L * 60L * 60L * 1000L;
+                    boolean nextFound = false;
+                    for (int w = 0; w < 20; w++) {
+                        if (lh.occursOnDate(new Date(nextWeekStartMillis))) {
+                            nextFound = true;
+                            break;
+                        }
+                        nextWeekStartMillis += 7L * 24L * 60L * 60L * 1000L;
+                    }
+                    if (!nextFound) {
+                        cancelNotification(context, 10000 + lh.getId());
+                        cancelNotification(context, 20000 + lh.getId());
+                        continue;
+                    }
+                    targetClassStartMillis = nextWeekStartMillis;
+                    reminderTriggerMillis = targetClassStartMillis - (reminderLeadMinutes * 60L * 1000L);
+                }
             }
 
             String title = "Sắp vào lớp (" + reminderLeadMinutes + " phút nữa): " + lh.getTenMon();
@@ -107,14 +155,20 @@ public class NotificationHelper {
 
             if (tietStart == 1) {
                 if (alarmPeriod1) {
-                    long alarm615Millis = computeNextOccurrenceMillis(lh.getThu(), 6, 15);
-                    if (alarm615Millis <= nowMillis) {
-                        alarm615Millis += 7L * 24L * 60L * 60L * 1000L;
+                    Calendar calAlarm = Calendar.getInstance();
+                    calAlarm.setTimeInMillis(targetClassStartMillis);
+                    calAlarm.set(Calendar.HOUR_OF_DAY, 6);
+                    calAlarm.set(Calendar.MINUTE, 15);
+                    calAlarm.set(Calendar.SECOND, 0);
+                    calAlarm.set(Calendar.MILLISECOND, 0);
+
+                    long alarm615Millis = calAlarm.getTimeInMillis();
+                    if (alarm615Millis > nowMillis) {
+                        String alarmTitle = "Báo thức Tiết 1 (06:15): " + lh.getTenMon();
+                        String alarmMsg = "Chuẩn bị đi học tại Phòng " + lh.getPhongHoc() + " (Vào lớp lúc 07:00)";
+                        scheduleNotification(context, alarmTitle, alarmMsg, alarm615Millis, 20000 + lh.getId());
+                        scheduledCount++;
                     }
-                    String alarmTitle = "Báo thức Tiết 1 (06:15): " + lh.getTenMon();
-                    String alarmMsg = "Chuẩn bị đi học tại Phòng " + lh.getPhongHoc() + " (Vào lớp lúc 07:00)";
-                    scheduleNotification(context, alarmTitle, alarmMsg, alarm615Millis, 20000 + lh.getId());
-                    scheduledCount++;
                 } else {
                     cancelNotification(context, 20000 + lh.getId());
                 }

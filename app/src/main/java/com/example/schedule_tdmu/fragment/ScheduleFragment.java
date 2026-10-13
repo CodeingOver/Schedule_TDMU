@@ -366,27 +366,80 @@ public class ScheduleFragment extends Fragment {
             tvHeroGreeting.setText(greetingPrefix + ", " + shortName + "!");
         }
 
-        // 2. Tìm tiết học kế tiếp hoặc gần nhất
+        // 2. Tìm tiết học đang diễn ra hoặc kế tiếp (lọc chính xác theo ngày thực tế)
         int dow = calNow.get(Calendar.DAY_OF_WEEK);
         int todayThu = (dow == Calendar.SUNDAY) ? 8 : dow;
         int nowMinutes = hour * 60 + calNow.get(Calendar.MINUTE);
+        Date todayDate = calNow.getTime();
 
-        List<LichHoc> todayClasses = dbHelper.getLichHocByThu(todayThu);
+        List<LichHoc> activeTodayClasses = new ArrayList<>();
+        for (LichHoc lh : dbHelper.getLichHocByThu(todayThu)) {
+            if (lh.occursOnDate(todayDate)) {
+                activeTodayClasses.add(lh);
+            }
+        }
+
         LichHoc nextClass = null;
-        for (LichHoc lh : todayClasses) {
-            int endMin = LichHocAdapter.getPeriodEndMinutes(lh.getTietBatDau() + lh.getSoTiet() - 1);
-            if (nowMinutes <= endMin) {
+        String heroStatus = null;
+        String heroCountdownText = null;
+
+        // 2.1 Kiểm tra xem có lớp nào đang trong giờ học hôm nay không
+        for (LichHoc lh : activeTodayClasses) {
+            int tietStart = lh.getTietBatDau();
+            int tietEnd = tietStart + lh.getSoTiet() - 1;
+            int startMin = LichHocAdapter.getPeriodStartMinutes(tietStart);
+            int endMin = LichHocAdapter.getPeriodEndMinutes(tietEnd);
+            if (nowMinutes >= startMin && nowMinutes <= endMin) {
                 nextClass = lh;
+                heroStatus = "Đang trong giờ học";
+                heroCountdownText = "Đang học";
                 break;
             }
         }
-        if (nextClass == null && !todayClasses.isEmpty()) {
-            nextClass = todayClasses.get(0);
-        }
+
+        // 2.2 Nếu không có lớp đang học, tìm lớp kế tiếp hôm nay chưa bắt đầu
         if (nextClass == null) {
-            List<LichHoc> allClasses = dbHelper.getAllLichHocWithMonHoc();
-            if (!allClasses.isEmpty()) {
-                nextClass = allClasses.get(0);
+            for (LichHoc lh : activeTodayClasses) {
+                int tietStart = lh.getTietBatDau();
+                int startMin = LichHocAdapter.getPeriodStartMinutes(tietStart);
+                if (nowMinutes < startMin) {
+                    nextClass = lh;
+                    heroStatus = "Tiết học kế tiếp";
+                    int diff = startMin - nowMinutes;
+                    if (diff < 60) {
+                        heroCountdownText = "Còn " + diff + " phút";
+                    } else {
+                        heroCountdownText = "Còn " + (diff / 60) + "h " + (diff % 60) + "p";
+                    }
+                    break;
+                }
+            }
+        }
+
+        // 2.3 Nếu hôm nay không còn lớp nào (đã học xong hoặc hôm nay nghỉ), tìm môn ở các ngày tiếp theo (tối đa 14 ngày)
+        if (nextClass == null) {
+            Calendar calFuture = Calendar.getInstance();
+            calFuture.setTime(todayDate);
+            for (int dayOffset = 1; dayOffset <= 14; dayOffset++) {
+                calFuture.add(Calendar.DAY_OF_YEAR, 1);
+                Date futureDate = calFuture.getTime();
+                int futureDow = calFuture.get(Calendar.DAY_OF_WEEK);
+                int futureThu = (futureDow == Calendar.SUNDAY) ? 8 : futureDow;
+
+                List<LichHoc> futureList = dbHelper.getLichHocByThu(futureThu);
+                for (LichHoc flh : futureList) {
+                    if (flh.occursOnDate(futureDate)) {
+                        nextClass = flh;
+                        SimpleDateFormat sdfDayMonth = new SimpleDateFormat("dd/MM", Locale.getDefault());
+                        String thuName = (futureThu == 8) ? "Chủ Nhật" : ("Thứ " + futureThu);
+                        heroStatus = "Lịch học tiêu điểm";
+                        heroCountdownText = thuName + " (" + sdfDayMonth.format(futureDate) + ")";
+                        break;
+                    }
+                }
+                if (nextClass != null) {
+                    break;
+                }
             }
         }
 
@@ -412,25 +465,9 @@ public class ScheduleFragment extends Fragment {
                 tvHeroLecturer.setText(heroItem.getGiangVien());
             }
 
-            int startMin = LichHocAdapter.getPeriodStartMinutes(tietStart);
-            int endMin = LichHocAdapter.getPeriodEndMinutes(tietEnd);
             if (tvHeroCountdown != null && tvHeroStatusPill != null) {
-                if (heroItem.getThu() == todayThu && nowMinutes >= startMin && nowMinutes <= endMin) {
-                    tvHeroStatusPill.setText("Đang trong giờ học");
-                    tvHeroCountdown.setText("Đang học");
-                } else if (heroItem.getThu() == todayThu && nowMinutes < startMin) {
-                    int diff = startMin - nowMinutes;
-                    tvHeroStatusPill.setText("Tiết học kế tiếp");
-                    if (diff < 60) {
-                        tvHeroCountdown.setText("Còn " + diff + " phút");
-                    } else {
-                        tvHeroCountdown.setText("Còn " + (diff / 60) + "h " + (diff % 60) + "p");
-                    }
-                } else {
-                    String thuLabel = heroItem.getThu() == 8 ? "Chủ Nhật" : "Thứ " + heroItem.getThu();
-                    tvHeroStatusPill.setText("Lịch học tiêu điểm");
-                    tvHeroCountdown.setText(thuLabel);
-                }
+                tvHeroStatusPill.setText(heroStatus != null ? heroStatus : "Lịch học tiêu điểm");
+                tvHeroCountdown.setText(heroCountdownText != null ? heroCountdownText : "Sắp tới");
             }
 
             if (btnHeroDirections != null) {
@@ -452,9 +489,9 @@ public class ScheduleFragment extends Fragment {
             }
         } else {
             if (tvHeroStatusPill != null) tvHeroStatusPill.setText("Chưa có lịch");
-            if (tvHeroCourseCode != null) tvHeroCourseCode.setText("Chưa có học phần nào được thêm");
-            if (tvHeroCourseTitle != null) tvHeroCourseTitle.setText("Hãy thêm hoặc nhập TKB của bạn");
-            if (tvHeroTime != null) tvHeroTime.setText("Nhấn nút + hoặc Nhập Excel / Quét AI");
+            if (tvHeroCourseCode != null) tvHeroCourseCode.setText("Hôm nay không có lịch học");
+            if (tvHeroCourseTitle != null) tvHeroCourseTitle.setText("Chưa có tiết học kế tiếp");
+            if (tvHeroTime != null) tvHeroTime.setText("Nghỉ học hoặc chưa đến tuần học");
             if (tvHeroCountdown != null) tvHeroCountdown.setText("Trống");
             if (tvHeroRoom != null) tvHeroRoom.setText("Chưa có phòng học");
             if (tvHeroLecturer != null) tvHeroLecturer.setText("Chưa có giảng viên");

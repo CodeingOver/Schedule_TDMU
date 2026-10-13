@@ -64,5 +64,8 @@ public class AlarmReceiver extends BroadcastReceiver {
         if (notificationManager != null) {
             notificationManager.notify((int) System.currentTimeMillis(), builder.build());
         }
+
+        // Tu dong lap lich cho lan hoc ke tiep
+        com.example.schedule_tdmu.utils.NotificationHelper.syncAllScheduleReminders(context);
     }
 }
