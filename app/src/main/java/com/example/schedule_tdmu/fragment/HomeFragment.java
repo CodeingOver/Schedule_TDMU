@@ -24,8 +24,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class HomeFragment extends Fragment {
 
@@ -86,10 +88,14 @@ public class HomeFragment extends Fragment {
         // Tải danh sách môn học theo Thứ và lọc theo Khoảng Ngày Học (Cột K "Thời gian học" trong Excel)
         List<LichHoc> allThuList = dbHelper.getLichHocByThu(thuToday);
         List<LichHoc> todayActiveList = new ArrayList<>();
+        Set<String> seenKeys = new HashSet<>();
 
         for (LichHoc lh : allThuList) {
             if (lh.isClassActiveOnDate(todayDate)) {
-                todayActiveList.add(lh);
+                String key = lh.getMonHocId() + "_" + lh.getThu() + "_" + lh.getTietBatDau() + "_" + lh.getSoTiet();
+                if (seenKeys.add(key)) {
+                    todayActiveList.add(lh);
+                }
             }
         }
 

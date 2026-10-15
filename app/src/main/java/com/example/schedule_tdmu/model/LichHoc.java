@@ -1,14 +1,26 @@
 package com.example.schedule_tdmu.model;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LichHoc {
-    private static final Pattern DATE_RANGE_PATTERN = Pattern.compile("([0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4})\\s*đến\\s*([0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4})", Pattern.CASE_INSENSITIVE);
+    private static final Pattern DATE_RANGE_PATTERN = Pattern.compile("([0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4})\\s*(?:đến|-|->|to)\\s*([0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4})", Pattern.CASE_INSENSITIVE);
+
+    public static class DateRange {
+        public final long startDay;
+        public final long endDay;
+
+        public DateRange(long startDay, long endDay) {
+            this.startDay = startDay;
+            this.endDay = endDay;
+        }
+    }
 
     private int id;
     private int monHocId;
@@ -21,7 +33,8 @@ public class LichHoc {
     private String namHoc;
     private String tuanHoc;
 
-    // Cache ngày bắt đầu & ngày kết thúc để tăng tốc tối đa
+    // Cache danh sách các khoảng ngày học để tăng tốc tối đa
+    private transient List<DateRange> parsedRanges = null;
     private transient Date parsedStartDate = null;
     private transient Date parsedEndDate = null;
     private transient boolean datesParsed = false;
@@ -62,27 +75,39 @@ public class LichHoc {
     private void parseDatesIfNeeded() {
         if (datesParsed) return;
         datesParsed = true;
+        parsedRanges = new ArrayList<>();
         if (tuanHoc == null || tuanHoc.trim().isEmpty()) return;
 
         try {
             Matcher matcher = DATE_RANGE_PATTERN.matcher(tuanHoc);
-            if (matcher.find()) {
+            SimpleDateFormat sdfShort = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
+            SimpleDateFormat sdfLong = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
+            while (matcher.find()) {
                 String startStr = matcher.group(1);
                 String endStr = matcher.group(2);
 
                 if (startStr != null && endStr != null) {
-                    SimpleDateFormat sdfShort = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
-                    SimpleDateFormat sdfLong = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-
-                    parsedStartDate = (startStr.length() <= 8) ? sdfShort.parse(startStr) : sdfLong.parse(startStr);
-                    parsedEndDate = (endStr.length() <= 8) ? sdfShort.parse(endStr) : sdfLong.parse(endStr);
+                    Date sDate = (startStr.length() <= 8) ? sdfShort.parse(startStr) : sdfLong.parse(startStr);
+                    Date eDate = (endStr.length() <= 8) ? sdfShort.parse(endStr) : sdfLong.parse(endStr);
+                    if (sDate != null && eDate != null) {
+                        long sDay = startOfDay(sDate);
+                        long eDay = startOfDay(eDate);
+                        parsedRanges.add(new DateRange(sDay, eDay));
+                        if (parsedStartDate == null || sDate.before(parsedStartDate)) {
+                            parsedStartDate = sDate;
+                        }
+                        if (parsedEndDate == null || eDate.after(parsedEndDate)) {
+                            parsedEndDate = eDate;
+                        }
+                    }
                 }
             }
         } catch (Exception ignored) {
         }
     }
 
-    private static long startOfDay(Date date) {
+    public static long startOfDay(Date date) {
         if (date == null) return 0;
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
@@ -94,9 +119,27 @@ public class LichHoc {
     }
 
     /**
+     * Kiem tra xem ngay targetDate co nam trong khoang thoi gian hoc cua mon hoc hay khong.
+     * So sanh chuan xac theo moc 00:00:00 cua tung ngay, tuyet doi khong dung sai so buffer lam lem ngay.
+     */
+    public boolean isClassActiveOnDate(Date targetDate) {
+        if (targetDate == null) return true;
+        parseDatesIfNeeded();
+        if (parsedRanges == null || parsedRanges.isEmpty()) return true;
+
+        long targetDay = startOfDay(targetDate);
+        for (DateRange range : parsedRanges) {
+            if (targetDay >= range.startDay && targetDay <= range.endDay) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Kiem tra chinh xac xem lop hoc co dien ra vao dung ngay date hay khong:
      * 1. Thu cua date phai trung voi thu cua LichHoc.
-     * 2. Ngay date phai nam trong khoang [parsedStartDate, parsedEndDate] (neu co tuanHoc).
+     * 2. Ngay date phai nam trong khoang thoi gian hoc (parsedRanges).
      */
     public boolean occursOnDate(Date date) {
         if (date == null) return false;
@@ -106,44 +149,26 @@ public class LichHoc {
         int thuOfDate = (dow == Calendar.SUNDAY) ? 8 : dow;
         if (thuOfDate != thu) return false;
 
-        parseDatesIfNeeded();
-        if (parsedStartDate == null || parsedEndDate == null) return true;
-
-        long targetDay = startOfDay(date);
-        long startDay = startOfDay(parsedStartDate);
-        long endDay = startOfDay(parsedEndDate);
-
-        return targetDay >= startDay && targetDay <= endDay;
+        return isClassActiveOnDate(date);
     }
 
-    public boolean isClassActiveOnDate(Date targetDate) {
-        if (targetDate == null) return true;
-        parseDatesIfNeeded();
-        if (parsedStartDate == null || parsedEndDate == null) return true;
-
-        long targetMs = targetDate.getTime();
-        long startMs = parsedStartDate.getTime() - 86400000L; // Biên Lùi 1 ngày
-        long endMs = parsedEndDate.getTime() + 86400000L;    // Biên Tiến 1 ngày
-
-        return targetMs >= startMs && targetMs <= endMs;
-    }
-
+    /**
+     * Kiem tra xem trong tuan hoc bat dau tu weekStartDate (Thu 2), mon hoc co buoi hoc nao khong.
+     * Tinh chinh xac ngay dien ra cua mon hoc trong tuan nay (weekStartDate + dayOffset)
+     * va kiem tra xem ngay do co nam trong thoi gian hoc hay khong.
+     */
     public boolean isClassActiveInWeek(Date weekStartDate) {
         if (weekStartDate == null) return true;
-        parseDatesIfNeeded();
-        if (parsedStartDate == null || parsedEndDate == null) return true;
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(weekStartDate);
+        while (cal.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY) {
+            cal.add(Calendar.DAY_OF_YEAR, -1);
+        }
+        int dayOffset = (thu == 8) ? 6 : Math.max(0, thu - 2);
+        cal.add(Calendar.DAY_OF_YEAR, dayOffset);
+        Date classDateInWeek = cal.getTime();
 
-        Calendar calWeekEnd = Calendar.getInstance();
-        calWeekEnd.setTime(weekStartDate);
-        calWeekEnd.add(Calendar.DAY_OF_YEAR, 6);
-
-        long weekStartMs = weekStartDate.getTime() - 86400000L;
-        long weekEndMs = calWeekEnd.getTimeInMillis() + 86400000L;
-
-        long startMs = parsedStartDate.getTime();
-        long endMs = parsedEndDate.getTime();
-
-        return !(endMs < weekStartMs || startMs > weekEndMs);
+        return occursOnDate(classDateInWeek);
     }
 
     public int getId() {

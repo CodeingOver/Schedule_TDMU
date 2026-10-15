@@ -81,6 +81,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     @Override
+    public void onOpen(SQLiteDatabase db) {
+        super.onOpen(db);
+        cleanDuplicateLichHoc(db);
+    }
+
+    @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_TABLE_MON_HOC = "CREATE TABLE " + TABLE_MON_HOC + " (" +
                 COL_MON_HOC_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -163,7 +169,61 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insertWithOnConflict(TABLE_MON_HOC, null, values, SQLiteDatabase.CONFLICT_IGNORE);
     }
 
+    public void cleanDuplicateLichHoc() {
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
+            cleanDuplicateLichHoc(db);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void cleanDuplicateLichHoc(SQLiteDatabase db) {
+        if (db == null || db.isReadOnly()) return;
+        try {
+            String sql = "DELETE FROM " + TABLE_LICH_HOC + " WHERE " + COL_LICH_HOC_ID + " NOT IN (" +
+                    "SELECT MIN(" + COL_LICH_HOC_ID + ") FROM " + TABLE_LICH_HOC +
+                    " GROUP BY " + COL_LH_MON_HOC_ID + ", " + COL_THU + ", " + COL_TIET_BAT_DAU + ", " +
+                    COL_SO_TIET + ", COALESCE(" + COL_PHONG_HOC + ", ''), COALESCE(" + COL_TUAN_HOC + ", '')" +
+                    ")";
+            db.execSQL(sql);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean isLichHocDuplicate(SQLiteDatabase db, LichHoc lichHoc) {
+        if (db == null || lichHoc == null) return false;
+        String selection = COL_LH_MON_HOC_ID + " = ? AND " +
+                COL_THU + " = ? AND " +
+                COL_TIET_BAT_DAU + " = ? AND " +
+                COL_SO_TIET + " = ? AND " +
+                "COALESCE(" + COL_PHONG_HOC + ", '') = ? AND " +
+                "COALESCE(" + COL_TUAN_HOC + ", '') = ?";
+        String[] selectionArgs = new String[]{
+                String.valueOf(lichHoc.getMonHocId()),
+                String.valueOf(lichHoc.getThu()),
+                String.valueOf(lichHoc.getTietBatDau()),
+                String.valueOf(lichHoc.getSoTiet()),
+                lichHoc.getPhongHoc() != null ? lichHoc.getPhongHoc().trim() : "",
+                lichHoc.getTuanHoc() != null ? lichHoc.getTuanHoc().trim() : ""
+        };
+        Cursor cursor = null;
+        try {
+            cursor = db.query(TABLE_LICH_HOC, new String[]{COL_LICH_HOC_ID}, selection, selectionArgs, null, null, null);
+            return (cursor != null && cursor.getCount() > 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+    }
+
     private long insertLichHocInternal(SQLiteDatabase db, LichHoc lichHoc) {
+        if (isLichHocDuplicate(db, lichHoc)) {
+            return -1;
+        }
         ContentValues values = new ContentValues();
         values.put(COL_LH_MON_HOC_ID, lichHoc.getMonHocId());
         values.put(COL_THU, lichHoc.getThu());

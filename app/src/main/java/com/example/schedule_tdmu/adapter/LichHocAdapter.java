@@ -166,6 +166,7 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
         }
 
         String thuText = item.getThu() == 8 ? "Chủ Nhật" : "Thứ " + item.getThu();
+        Date classDate = null;
         if (weekStartDate != null) {
             Calendar cal = Calendar.getInstance();
             cal.setTime(weekStartDate);
@@ -174,8 +175,9 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
             }
             int dayOffset = item.getThu() == 8 ? 6 : Math.max(0, item.getThu() - 2);
             cal.add(Calendar.DAY_OF_YEAR, dayOffset);
+            classDate = cal.getTime();
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM", Locale.getDefault());
-            thuText += " (" + sdf.format(cal.getTime()) + ")";
+            thuText += " (" + sdf.format(classDate) + ")";
         }
         if (holder.tvThu != null) {
             holder.tvThu.setVisibility(View.VISIBLE);
@@ -190,33 +192,72 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
         }
 
         if (holder.tvStatusBadge != null) {
-            holder.tvStatusBadge.setVisibility(View.VISIBLE);
-            Calendar calNow = Calendar.getInstance();
-            int nowMinutes = calNow.get(Calendar.HOUR_OF_DAY) * 60 + calNow.get(Calendar.MINUTE);
-            int startMinutes = getPeriodStartMinutes(tietStart);
-            int endMinutes = getPeriodEndMinutes(tietEnd);
-
-            if (nowMinutes > endMinutes) {
-                holder.tvStatusBadge.setText("Đã hoàn thành");
-                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_surface_high);
-                holder.tvStatusBadge.setTextColor(Color.parseColor("#464555"));
-            } else if (nowMinutes >= startMinutes && nowMinutes <= endMinutes) {
-                holder.tvStatusBadge.setText("Đang diễn ra");
-                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_tertiary);
-                holder.tvStatusBadge.setTextColor(Color.parseColor("#005338"));
-            } else if (tietStart >= 7) {
-                holder.tvStatusBadge.setText("Buổi chiều");
-                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_secondary);
-                holder.tvStatusBadge.setTextColor(Color.parseColor("#0058BE"));
+            if (!showStatusTags) {
+                holder.tvStatusBadge.setVisibility(View.GONE);
             } else {
-                int diff = Math.max(5, startMinutes - nowMinutes);
-                if (diff <= 90) {
-                    holder.tvStatusBadge.setText("Sắp diễn ra (" + diff + "p)");
+                holder.tvStatusBadge.setVisibility(View.VISIBLE);
+                Calendar calNow = Calendar.getInstance();
+                long todayStart = LichHoc.startOfDay(calNow.getTime());
+                long classDayStart = (classDate != null) ? LichHoc.startOfDay(classDate) : todayStart;
+
+                int nowMinutes = calNow.get(Calendar.HOUR_OF_DAY) * 60 + calNow.get(Calendar.MINUTE);
+                int startMinutes = getPeriodStartMinutes(tietStart);
+                int endMinutes = getPeriodEndMinutes(tietEnd);
+
+                if (classDayStart < todayStart) {
+                    // Buổi học đã diễn ra ở ngày trong quá khứ -> Đã qua
+                    holder.tvStatusBadge.setText("Đã hoàn thành");
+                    holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_surface_high);
+                    holder.tvStatusBadge.setTextColor(Color.parseColor("#464555"));
+                } else if (classDayStart > todayStart) {
+                    // Buổi học diễn ra ở ngày trong tương lai (ngày mai, tuần sau,...) -> Không thể là "Đang diễn ra"
+                    if (tietStart >= 13) {
+                        holder.tvStatusBadge.setText("Buổi tối");
+                        holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_surface_high);
+                        holder.tvStatusBadge.setTextColor(Color.parseColor("#464555"));
+                    } else if (tietStart >= 7) {
+                        holder.tvStatusBadge.setText("Buổi chiều");
+                        holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_secondary);
+                        holder.tvStatusBadge.setTextColor(Color.parseColor("#0058BE"));
+                    } else {
+                        holder.tvStatusBadge.setText("Buổi sáng");
+                        holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_surface_high);
+                        holder.tvStatusBadge.setTextColor(Color.parseColor("#3525CD"));
+                    }
                 } else {
-                    holder.tvStatusBadge.setText("Sắp diễn ra");
+                    // Buổi học diễn ra CHÍNH XÁC HÔM NAY (classDayStart == todayStart)
+                    if (nowMinutes > endMinutes) {
+                        // Tiết học hôm nay đã kết thúc
+                        holder.tvStatusBadge.setText("Đã hoàn thành");
+                        holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_surface_high);
+                        holder.tvStatusBadge.setTextColor(Color.parseColor("#464555"));
+                    } else if (nowMinutes >= startMinutes && nowMinutes <= endMinutes) {
+                        // Tiết học đang diễn ra ngay lúc này!
+                        holder.tvStatusBadge.setText("Đang diễn ra");
+                        holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_tertiary);
+                        holder.tvStatusBadge.setTextColor(Color.parseColor("#005338"));
+                    } else {
+                        // nowMinutes < startMinutes: Chưa tới giờ học hôm nay
+                        int diff = startMinutes - nowMinutes;
+                        if (diff <= 60) {
+                            holder.tvStatusBadge.setText("Sắp diễn ra (" + diff + "p)");
+                            holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_error);
+                            holder.tvStatusBadge.setTextColor(Color.parseColor("#BA1A1A"));
+                        } else if (tietStart >= 13) {
+                            holder.tvStatusBadge.setText("Buổi tối");
+                            holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_surface_high);
+                            holder.tvStatusBadge.setTextColor(Color.parseColor("#464555"));
+                        } else if (tietStart >= 7) {
+                            holder.tvStatusBadge.setText("Buổi chiều");
+                            holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_secondary);
+                            holder.tvStatusBadge.setTextColor(Color.parseColor("#0058BE"));
+                        } else {
+                            holder.tvStatusBadge.setText("Sắp diễn ra");
+                            holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_secondary);
+                            holder.tvStatusBadge.setTextColor(Color.parseColor("#0058BE"));
+                        }
+                    }
                 }
-                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_pill_error);
-                holder.tvStatusBadge.setTextColor(Color.parseColor("#BA1A1A"));
             }
         }
 
@@ -255,6 +296,7 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
         if (start == 4) return 9 * 60 + 30;
         if (start == 7) return 13 * 60;
         if (start == 10) return 15 * 60 + 30;
+        if (start >= 13) return 18 * 60;
         return 7 * 60;
     }
 
@@ -262,7 +304,8 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
         if (end <= 3) return 9 * 60 + 15;
         if (end <= 6) return 11 * 60 + 45;
         if (end <= 9) return 15 * 60 + 30;
-        return 17 * 60 + 45;
+        if (end <= 12) return 17 * 60 + 45;
+        return 20 * 60 + 15;
     }
 
     private void toggleSelection(int id) {
@@ -282,12 +325,14 @@ public class LichHocAdapter extends RecyclerView.Adapter<LichHocAdapter.LichHocV
         if (start == 4) startTime = "09:30";
         else if (start == 7) startTime = "13:00";
         else if (start == 10) startTime = "15:30";
+        else if (start >= 13) startTime = "18:00";
 
         String endTime = "09:15";
         if (end <= 3) endTime = "09:15";
         else if (end <= 6) endTime = "11:45";
         else if (end <= 9) endTime = "15:30";
-        else endTime = "17:45";
+        else if (end <= 12) endTime = "17:45";
+        else endTime = "20:15";
 
         return startTime + " - " + endTime;
     }

@@ -58,6 +58,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -155,6 +156,7 @@ public class ScheduleFragment extends Fragment {
 
         if (getContext() != null) {
             dbHelper = new DatabaseHelper(getContext());
+            dbHelper.cleanDuplicateLichHoc();
             prefManager = new SharedPrefManager(getContext());
         }
 
@@ -391,8 +393,8 @@ public class ScheduleFragment extends Fragment {
             int endMin = LichHocAdapter.getPeriodEndMinutes(tietEnd);
             if (nowMinutes >= startMin && nowMinutes <= endMin) {
                 nextClass = lh;
-                heroStatus = "Đang trong giờ học";
-                heroCountdownText = "Đang học";
+                heroStatus = "Đang diễn ra";
+                heroCountdownText = "Đang trong giờ học";
                 break;
             }
         }
@@ -404,11 +406,12 @@ public class ScheduleFragment extends Fragment {
                 int startMin = LichHocAdapter.getPeriodStartMinutes(tietStart);
                 if (nowMinutes < startMin) {
                     nextClass = lh;
-                    heroStatus = "Tiết học kế tiếp";
                     int diff = startMin - nowMinutes;
-                    if (diff < 60) {
+                    if (diff <= 60) {
+                        heroStatus = "Sắp diễn ra";
                         heroCountdownText = "Còn " + diff + " phút";
                     } else {
+                        heroStatus = "Tiết học kế tiếp";
                         heroCountdownText = "Còn " + (diff / 60) + "h " + (diff % 60) + "p";
                     }
                     break;
@@ -432,7 +435,7 @@ public class ScheduleFragment extends Fragment {
                         nextClass = flh;
                         SimpleDateFormat sdfDayMonth = new SimpleDateFormat("dd/MM", Locale.getDefault());
                         String thuName = (futureThu == 8) ? "Chủ Nhật" : ("Thứ " + futureThu);
-                        heroStatus = "Lịch học tiêu điểm";
+                        heroStatus = "Lịch học kế tiếp";
                         heroCountdownText = thuName + " (" + sdfDayMonth.format(futureDate) + ")";
                         break;
                     }
@@ -466,8 +469,18 @@ public class ScheduleFragment extends Fragment {
             }
 
             if (tvHeroCountdown != null && tvHeroStatusPill != null) {
-                tvHeroStatusPill.setText(heroStatus != null ? heroStatus : "Lịch học tiêu điểm");
+                tvHeroStatusPill.setText(heroStatus != null ? heroStatus : "Lịch học kế tiếp");
                 tvHeroCountdown.setText(heroCountdownText != null ? heroCountdownText : "Sắp tới");
+                if ("Đang diễn ra".equals(heroStatus)) {
+                    tvHeroStatusPill.setBackgroundResource(R.drawable.bg_pill_tertiary);
+                    tvHeroStatusPill.setTextColor(Color.parseColor("#005338"));
+                } else if ("Sắp diễn ra".equals(heroStatus)) {
+                    tvHeroStatusPill.setBackgroundResource(R.drawable.bg_pill_error);
+                    tvHeroStatusPill.setTextColor(Color.parseColor("#BA1A1A"));
+                } else {
+                    tvHeroStatusPill.setBackgroundResource(R.drawable.bg_pill_secondary);
+                    tvHeroStatusPill.setTextColor(Color.parseColor("#0058BE"));
+                }
             }
 
             if (btnHeroDirections != null) {
@@ -678,17 +691,29 @@ public class ScheduleFragment extends Fragment {
             Date dayDate = cal.getTime();
             int thuVal = (i == 6) ? 8 : (i + 2);
             int classCount = 0;
+            Set<String> countedDayKeys = new HashSet<>();
 
             for (LichHoc lh : allList) {
                 if (lh.getThu() == thuVal && lh.isClassActiveOnDate(dayDate)) {
-                    classCount++;
+                    String key = lh.getMonHocId() + "_" + lh.getThu() + "_" + lh.getTietBatDau() + "_" + lh.getSoTiet();
+                    if (countedDayKeys.add(key)) {
+                        classCount++;
+                    }
                 }
             }
 
             dayItems.add(new WeekStripAdapter.DayItem(thuVal, dayNames[i], sdfNum.format(dayDate), dayDate, classCount > 0, classCount));
             cal.add(Calendar.DAY_OF_YEAR, 1);
         }
-        dayItems.add(new WeekStripAdapter.DayItem(-1, "Cả tuần", "T2-CN", null, true, allList.size()));
+
+        Set<String> weekActiveKeys = new HashSet<>();
+        for (LichHoc lh : allList) {
+            if (lh.isClassActiveInWeek(weekStartDate)) {
+                String key = lh.getMonHocId() + "_" + lh.getThu() + "_" + lh.getTietBatDau() + "_" + lh.getSoTiet();
+                weekActiveKeys.add(key);
+            }
+        }
+        dayItems.add(new WeekStripAdapter.DayItem(-1, "Cả tuần", "T2-CN", null, true, weekActiveKeys.size()));
 
         if (weekStripAdapter == null) {
             weekStripAdapter = new WeekStripAdapter(dayItems, dayItem -> {
@@ -973,17 +998,27 @@ public class ScheduleFragment extends Fragment {
                 e.printStackTrace();
             }
 
-            int count = 0;
-            for (ParsedSubject ps : subjects) {
-                saveParsedSubjectToDb(ps.maMon, ps.tenMon, ps.thu, ps.tietBatDau, ps.soTiet, ps.phongHoc, ps.giangVien, ps.tuanHoc);
-                count++;
+            if (dbHelper != null) {
+                dbHelper.cleanDuplicateLichHoc();
             }
 
-            final int finalCount = count;
+            int newCount = 0;
+            for (ParsedSubject ps : subjects) {
+                if (saveParsedSubjectToDb(ps.maMon, ps.tenMon, ps.thu, ps.tietBatDau, ps.soTiet, ps.phongHoc, ps.giangVien, ps.tuanHoc)) {
+                    newCount++;
+                }
+            }
+
+            final int finalNewCount = newCount;
+            final int totalParsed = subjects.size();
             new Handler(Looper.getMainLooper()).post(() -> {
-                if (finalCount > 0) {
+                if (totalParsed > 0) {
                     com.example.schedule_tdmu.utils.NotificationHelper.syncAllScheduleReminders(getContext());
-                    Toast.makeText(getContext(), "Đã nhập thành công " + finalCount + " môn học từ File Excel TDMU!", Toast.LENGTH_LONG).show();
+                    if (finalNewCount > 0) {
+                        Toast.makeText(getContext(), "Đã nhập thành công " + finalNewCount + " lịch học mới từ File Excel TDMU!", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getContext(), "Đã đồng bộ TKB thành công (Tất cả " + totalParsed + " buổi học đã tồn tại, không bị trùng lặp)!", Toast.LENGTH_LONG).show();
+                    }
                 } else {
                     Toast.makeText(getContext(), "Vui lòng chọn file Excel/CSV TDMU (.xlsx / .csv) hợp lệ!", Toast.LENGTH_SHORT).show();
                 }
@@ -1502,8 +1537,8 @@ public class ScheduleFragment extends Fragment {
         dialog.show();
     }
 
-    private void saveParsedSubjectToDb(String maMon, String tenMon, int thu, int tietBD, int soTietVal, String phong, String gv, String tuanHoc) {
-        if (dbHelper == null) return;
+    private boolean saveParsedSubjectToDb(String maMon, String tenMon, int thu, int tietBD, int soTietVal, String phong, String gv, String tuanHoc) {
+        if (dbHelper == null) return false;
 
         MonHoc mhNew = new MonHoc(maMon, tenMon, 3, "#3525CD");
         mhNew.setGiangVien(gv);
@@ -1520,8 +1555,10 @@ public class ScheduleFragment extends Fragment {
 
         if (monHocId != -1) {
             LichHoc lh = new LichHoc((int) monHocId, thu, tietBD, soTietVal, phong, gv, 1, "2026-2027", tuanHoc != null ? tuanHoc : "1-15");
-            dbHelper.insertLichHoc(lh);
+            long insertedLhId = dbHelper.insertLichHoc(lh);
+            return insertedLhId != -1;
         }
+        return false;
     }
 
     private void loadScheduleData() {
@@ -1537,11 +1574,17 @@ public class ScheduleFragment extends Fragment {
 
             List<LichHoc> allList = dbHelper.getAllLichHocWithMonHoc();
             List<LichHoc> filteredList = new ArrayList<>();
+            Set<String> seenKeys = new HashSet<>();
 
             for (LichHoc lh : allList) {
                 if (lh.isClassActiveInWeek(currentWeekStartDate)) {
                     if (selectedThuFilter == -1 || lh.getThu() == selectedThuFilter) {
-                        filteredList.add(lh);
+                        String key = lh.getMonHocId() + "_" + lh.getThu() + "_" + lh.getTietBatDau() + "_"
+                                + lh.getSoTiet() + "_" + (lh.getPhongHoc() != null ? lh.getPhongHoc().trim() : "")
+                                + "_" + (lh.getTuanHoc() != null ? lh.getTuanHoc().trim() : "");
+                        if (seenKeys.add(key)) {
+                            filteredList.add(lh);
+                        }
                     }
                 }
             }
