@@ -64,12 +64,13 @@
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
-                <!-- Email -->
+                <!-- Email hoặc MSSV -->
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/til_login_email"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Email Sinh viên (@student.tdmu.edu.vn)"
+                    android:hint="MSSV hoặc Email sinh viên"
                     app:startIconDrawable="@drawable/ic_mail"
                     app:startIconTint="@color/primary">
 
@@ -77,12 +78,12 @@
                         android:id="@+id/et_login_email"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textEmailAddress"
-                        android:text="21020485@student.tdmu.edu.vn" />
+                        android:inputType="textEmailAddress" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Mật khẩu -->
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/til_login_password"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -96,16 +97,46 @@
                         android:id="@+id/et_login_password"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textPassword"
-                        android:text="123456" />
+                        android:inputType="textPassword" />
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Ghi nhớ đăng nhập & Quên mật khẩu -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cb_remember_me"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Ghi nhớ đăng nhập"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tv_forgot_password"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="8dp"
+                        android:text="Quên mật khẩu?"
+                        android:textColor="@color/primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <!-- Nút Đăng nhập -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_login"
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="16dp"
                     android:backgroundTint="@color/primary"
                     android:text="ĐĂNG NHẬP HỆ THỐNG"
                     android:textColor="@color/white"
@@ -119,18 +150,16 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Nút Bỏ Qua (Dùng Thử) -->
+        <!-- Nút Đăng ký tài khoản mới -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_skip_login"
+            android:id="@+id/btn_register"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Trải nghiệm nhanh với hồ sơ mẫu"
+            android:text="Chưa có tài khoản? Đăng ký ngay"
             android:textColor="@color/primary"
-            app:icon="@drawable/ic_arrow_forward"
-            app:iconGravity="end"
-            app:iconTint="@color/primary" />
+            android:textSize="14sp" />
 
     </LinearLayout>
 </ScrollView>

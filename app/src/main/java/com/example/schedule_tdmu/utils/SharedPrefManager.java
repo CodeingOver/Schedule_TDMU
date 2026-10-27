@@ -17,6 +17,8 @@ public class SharedPrefManager {
     private static final String KEY_STUDENT_GPA = "student_gpa";
     private static final String KEY_STUDENT_CREDITS = "student_credits";
     private static final String KEY_STUDENT_DRL = "student_drl";
+    private static final String KEY_REMEMBER_ME = "remember_me";
+    private static final String KEY_SAVED_IDENTIFIER = "saved_identifier";
 
     private static final String KEY_REMINDER_MINUTES = "reminder_minutes";
     private static final String KEY_ALARM_PERIOD_1 = "alarm_period_1";
@@ -33,17 +35,51 @@ public class SharedPrefManager {
     }
 
     public void saveUserSession(String email, String name, String role) {
+        saveUserSession(email, name, role, "", "", "Viện Kỹ thuật - Công nghệ", false);
+    }
+
+    public void saveUserSession(String email, String name, String role, String mssv, String className, String faculty, boolean rememberMe) {
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
         editor.putString(KEY_STUDENT_EMAIL, email);
         editor.putString(KEY_STUDENT_NAME, name);
         editor.putString(KEY_USER_ROLE, role);
-        if (email != null && email.contains("@")) {
+        if (mssv != null && !mssv.isEmpty()) {
+            editor.putString(KEY_STUDENT_MSSV, mssv);
+        } else if (email != null && email.contains("@")) {
             String prefix = email.split("@")[0];
             if (prefix.matches("[0-9]+")) {
                 editor.putString(KEY_STUDENT_MSSV, prefix);
             }
         }
+        if (className != null && !className.isEmpty()) {
+            editor.putString(KEY_STUDENT_CLASS, className);
+        }
+        if (faculty != null && !faculty.isEmpty()) {
+            editor.putString(KEY_STUDENT_FACULTY, faculty);
+        }
+        editor.putBoolean(KEY_REMEMBER_ME, rememberMe);
+        if (rememberMe) {
+            editor.putString(KEY_SAVED_IDENTIFIER, (mssv != null && !mssv.isEmpty()) ? mssv : email);
+        } else {
+            editor.remove(KEY_SAVED_IDENTIFIER);
+        }
         editor.apply();
+    }
+
+    public boolean isRememberMe() {
+        return pref.getBoolean(KEY_REMEMBER_ME, false);
+    }
+
+    public void setRememberMe(boolean rememberMe) {
+        editor.putBoolean(KEY_REMEMBER_ME, rememberMe).apply();
+    }
+
+    public String getSavedIdentifier() {
+        return pref.getString(KEY_SAVED_IDENTIFIER, "");
+    }
+
+    public void setSavedIdentifier(String identifier) {
+        editor.putString(KEY_SAVED_IDENTIFIER, identifier).apply();
     }
 
     public boolean isLoggedIn() {
@@ -166,7 +202,16 @@ public class SharedPrefManager {
     }
 
     public void logout() {
-        editor.clear();
+        editor.remove(KEY_IS_LOGGED_IN);
+        editor.remove(KEY_STUDENT_EMAIL);
+        editor.remove(KEY_STUDENT_NAME);
+        editor.remove(KEY_USER_ROLE);
+        editor.remove(KEY_STUDENT_MSSV);
+        editor.remove(KEY_STUDENT_CLASS);
+        editor.remove(KEY_STUDENT_FACULTY);
+        if (!isRememberMe()) {
+            editor.remove(KEY_SAVED_IDENTIFIER);
+        }
         editor.apply();
     }
 }

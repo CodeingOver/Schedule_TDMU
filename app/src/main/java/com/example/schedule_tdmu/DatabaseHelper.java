@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.example.schedule_tdmu.model.LichHoc;
 import com.example.schedule_tdmu.model.LichThi;
 import com.example.schedule_tdmu.model.MonHoc;
+import com.example.schedule_tdmu.model.TaiKhoan;
 import com.example.schedule_tdmu.model.ThongBao;
 
 import java.util.ArrayList;
@@ -18,7 +19,19 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "ScheduleTDMU.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
+
+    // Bảng TaiKhoan
+    public static final String TABLE_TAI_KHOAN = "TaiKhoan";
+    public static final String COL_TK_ID = "id";
+    public static final String COL_TK_MSSV = "mssv";
+    public static final String COL_TK_EMAIL = "email";
+    public static final String COL_TK_MAT_KHAU = "mat_khau";
+    public static final String COL_TK_HO_TEN = "ho_ten";
+    public static final String COL_TK_LOP_HOC = "lop_hoc";
+    public static final String COL_TK_KHOA_VIEN = "khoa_vien";
+    public static final String COL_TK_VAI_TRO = "vai_tro";
+    public static final String COL_TK_NGAY_TAO = "ngay_tao";
 
     // Bảng MonHoc
     public static final String TABLE_MON_HOC = "MonHoc";
@@ -83,11 +96,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onOpen(SQLiteDatabase db) {
         super.onOpen(db);
+        ensureTaiKhoanTable(db);
         cleanDuplicateLichHoc(db);
+        seedDefaultAccounts(db);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        String CREATE_TABLE_TAI_KHOAN = "CREATE TABLE " + TABLE_TAI_KHOAN + " (" +
+                COL_TK_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COL_TK_MSSV + " TEXT UNIQUE, " +
+                COL_TK_EMAIL + " TEXT UNIQUE NOT NULL, " +
+                COL_TK_MAT_KHAU + " TEXT NOT NULL, " +
+                COL_TK_HO_TEN + " TEXT NOT NULL, " +
+                COL_TK_LOP_HOC + " TEXT DEFAULT '', " +
+                COL_TK_KHOA_VIEN + " TEXT DEFAULT 'Viện Kỹ thuật - Công nghệ', " +
+                COL_TK_VAI_TRO + " TEXT DEFAULT 'student', " +
+                COL_TK_NGAY_TAO + " TEXT);";
+
         String CREATE_TABLE_MON_HOC = "CREATE TABLE " + TABLE_MON_HOC + " (" +
                 COL_MON_HOC_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COL_MA_MON + " TEXT NOT NULL UNIQUE, " +
@@ -138,19 +164,81 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_PHONG_CU + " TEXT DEFAULT '', " +
                 COL_PHONG_MOI + " TEXT DEFAULT '');";
 
+        db.execSQL(CREATE_TABLE_TAI_KHOAN);
         db.execSQL(CREATE_TABLE_MON_HOC);
         db.execSQL(CREATE_TABLE_LICH_HOC);
         db.execSQL(CREATE_TABLE_LICH_THI);
         db.execSQL(CREATE_TABLE_THONG_BAO);
+
+        seedDefaultAccounts(db);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TAI_KHOAN);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_LICH_THI);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_LICH_HOC);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_MON_HOC);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_THONG_BAO);
         onCreate(db);
+    }
+
+    private void ensureTaiKhoanTable(SQLiteDatabase db) {
+        if (db == null || db.isReadOnly()) return;
+        try {
+            String CREATE_IF_NOT_EXISTS = "CREATE TABLE IF NOT EXISTS " + TABLE_TAI_KHOAN + " (" +
+                    COL_TK_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COL_TK_MSSV + " TEXT UNIQUE, " +
+                    COL_TK_EMAIL + " TEXT UNIQUE NOT NULL, " +
+                    COL_TK_MAT_KHAU + " TEXT NOT NULL, " +
+                    COL_TK_HO_TEN + " TEXT NOT NULL, " +
+                    COL_TK_LOP_HOC + " TEXT DEFAULT '', " +
+                    COL_TK_KHOA_VIEN + " TEXT DEFAULT 'Viện Kỹ thuật - Công nghệ', " +
+                    COL_TK_VAI_TRO + " TEXT DEFAULT 'student', " +
+                    COL_TK_NGAY_TAO + " TEXT);";
+            db.execSQL(CREATE_IF_NOT_EXISTS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void seedDefaultAccounts(SQLiteDatabase db) {
+        if (db == null || db.isReadOnly()) return;
+        try {
+            Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_TAI_KHOAN, null);
+            int count = 0;
+            if (cursor != null) {
+                if (cursor.moveToFirst()) count = cursor.getInt(0);
+                cursor.close();
+            }
+            if (count == 0) {
+                // 1. Sinh viên mẫu Nguyễn Minh Anh
+                ContentValues v1 = new ContentValues();
+                v1.put(COL_TK_MSSV, "21020485");
+                v1.put(COL_TK_EMAIL, "21020485@student.tdmu.edu.vn");
+                v1.put(COL_TK_MAT_KHAU, "123456");
+                v1.put(COL_TK_HO_TEN, "Nguyễn Minh Anh");
+                v1.put(COL_TK_LOP_HOC, "D21CNTT01");
+                v1.put(COL_TK_KHOA_VIEN, "Viện Kỹ thuật - Công nghệ");
+                v1.put(COL_TK_VAI_TRO, "student");
+                v1.put(COL_TK_NGAY_TAO, "2026-10-15 00:00:00");
+                db.insert(TABLE_TAI_KHOAN, null, v1);
+
+                // 2. Tài khoản Quản trị viên
+                ContentValues v2 = new ContentValues();
+                v2.put(COL_TK_MSSV, "admin");
+                v2.put(COL_TK_EMAIL, "admin@tdmu.edu.vn");
+                v2.put(COL_TK_MAT_KHAU, "admin123");
+                v2.put(COL_TK_HO_TEN, "Quản trị viên TDMU");
+                v2.put(COL_TK_LOP_HOC, "Phòng Đào tạo");
+                v2.put(COL_TK_KHOA_VIEN, "Ban Giám hiệu & Quản trị");
+                v2.put(COL_TK_VAI_TRO, "admin");
+                v2.put(COL_TK_NGAY_TAO, "2026-10-15 00:00:00");
+                db.insert(TABLE_TAI_KHOAN, null, v2);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private long insertMonHocInternal(SQLiteDatabase db, MonHoc monHoc) {
@@ -587,5 +675,133 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return count;
+    }
+
+    // ==========================================
+    // TÀI KHOẢN VÀ XÁC THỰC (AUTHENTICATION)
+    // ==========================================
+
+    public TaiKhoan authenticateUser(String identifier, String password) {
+        if (identifier == null || password == null) return null;
+        String idTrimmed = identifier.trim();
+        String pwdTrimmed = password.trim();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String emailCandidate = idTrimmed.contains("@") ? idTrimmed : idTrimmed + "@student.tdmu.edu.vn";
+        Cursor cursor = db.query(TABLE_TAI_KHOAN, null,
+                "(" + COL_TK_MSSV + " = ? COLLATE NOCASE OR " + COL_TK_EMAIL + " = ? COLLATE NOCASE OR " + COL_TK_EMAIL + " = ? COLLATE NOCASE) AND " + COL_TK_MAT_KHAU + " = ?",
+                new String[]{idTrimmed, idTrimmed, emailCandidate, pwdTrimmed},
+                null, null, null);
+
+        TaiKhoan taiKhoan = null;
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                taiKhoan = parseTaiKhoanFromCursor(cursor);
+            }
+            cursor.close();
+        }
+        return taiKhoan;
+    }
+
+    public boolean isUserExists(String identifier) {
+        if (identifier == null || identifier.trim().isEmpty()) return false;
+        String idTrimmed = identifier.trim();
+        String emailCandidate = idTrimmed.contains("@") ? idTrimmed : idTrimmed + "@student.tdmu.edu.vn";
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.rawQuery(
+                "SELECT COUNT(*) FROM " + TABLE_TAI_KHOAN + " WHERE " +
+                        COL_TK_MSSV + " = ? COLLATE NOCASE OR " +
+                        COL_TK_EMAIL + " = ? COLLATE NOCASE OR " +
+                        COL_TK_EMAIL + " = ? COLLATE NOCASE",
+                new String[]{idTrimmed, idTrimmed, emailCandidate});
+        boolean exists = false;
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                exists = cursor.getInt(0) > 0;
+            }
+            cursor.close();
+        }
+        return exists;
+    }
+
+    public TaiKhoan getTaiKhoanByIdentifier(String identifier) {
+        if (identifier == null || identifier.trim().isEmpty()) return null;
+        String idTrimmed = identifier.trim();
+        String emailCandidate = idTrimmed.contains("@") ? idTrimmed : idTrimmed + "@student.tdmu.edu.vn";
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(TABLE_TAI_KHOAN, null,
+                COL_TK_MSSV + " = ? COLLATE NOCASE OR " + COL_TK_EMAIL + " = ? COLLATE NOCASE OR " + COL_TK_EMAIL + " = ? COLLATE NOCASE",
+                new String[]{idTrimmed, idTrimmed, emailCandidate},
+                null, null, null);
+
+        TaiKhoan taiKhoan = null;
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                taiKhoan = parseTaiKhoanFromCursor(cursor);
+            }
+            cursor.close();
+        }
+        return taiKhoan;
+    }
+
+    public long insertTaiKhoan(TaiKhoan tk) {
+        if (tk == null) return -1;
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_TK_MSSV, tk.getMssv() != null ? tk.getMssv().trim() : "");
+        values.put(COL_TK_EMAIL, tk.getEmail() != null ? tk.getEmail().trim() : "");
+        values.put(COL_TK_MAT_KHAU, tk.getMatKhau() != null ? tk.getMatKhau().trim() : "");
+        values.put(COL_TK_HO_TEN, tk.getHoTen() != null ? tk.getHoTen().trim() : "");
+        values.put(COL_TK_LOP_HOC, tk.getLopHoc() != null ? tk.getLopHoc().trim() : "");
+        values.put(COL_TK_KHOA_VIEN, tk.getKhoaVien() != null ? tk.getKhoaVien().trim() : "Viện Kỹ thuật - Công nghệ");
+        values.put(COL_TK_VAI_TRO, tk.getVaiTro() != null ? tk.getVaiTro().trim() : "student");
+        values.put(COL_TK_NGAY_TAO, tk.getNgayTao() != null ? tk.getNgayTao() : "");
+        return db.insert(TABLE_TAI_KHOAN, null, values);
+    }
+
+    public boolean updatePassword(String identifier, String newPassword) {
+        if (identifier == null || newPassword == null) return false;
+        String idTrimmed = identifier.trim();
+        String emailCandidate = idTrimmed.contains("@") ? idTrimmed : idTrimmed + "@student.tdmu.edu.vn";
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_TK_MAT_KHAU, newPassword.trim());
+
+        int rows = db.update(TABLE_TAI_KHOAN, values,
+                COL_TK_MSSV + " = ? COLLATE NOCASE OR " + COL_TK_EMAIL + " = ? COLLATE NOCASE OR " + COL_TK_EMAIL + " = ? COLLATE NOCASE",
+                new String[]{idTrimmed, idTrimmed, emailCandidate});
+        return rows > 0;
+    }
+
+    public boolean updateTaiKhoanProfile(String identifier, String hoTen, String lopHoc, String khoaVien) {
+        if (identifier == null) return false;
+        String idTrimmed = identifier.trim();
+        String emailCandidate = idTrimmed.contains("@") ? idTrimmed : idTrimmed + "@student.tdmu.edu.vn";
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        if (hoTen != null) values.put(COL_TK_HO_TEN, hoTen.trim());
+        if (lopHoc != null) values.put(COL_TK_LOP_HOC, lopHoc.trim());
+        if (khoaVien != null) values.put(COL_TK_KHOA_VIEN, khoaVien.trim());
+
+        int rows = db.update(TABLE_TAI_KHOAN, values,
+                COL_TK_MSSV + " = ? COLLATE NOCASE OR " + COL_TK_EMAIL + " = ? COLLATE NOCASE OR " + COL_TK_EMAIL + " = ? COLLATE NOCASE",
+                new String[]{idTrimmed, idTrimmed, emailCandidate});
+        return rows > 0;
+    }
+
+    private TaiKhoan parseTaiKhoanFromCursor(Cursor cursor) {
+        TaiKhoan tk = new TaiKhoan();
+        tk.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COL_TK_ID)));
+        tk.setMssv(cursor.getString(cursor.getColumnIndexOrThrow(COL_TK_MSSV)));
+        tk.setEmail(cursor.getString(cursor.getColumnIndexOrThrow(COL_TK_EMAIL)));
+        tk.setMatKhau(cursor.getString(cursor.getColumnIndexOrThrow(COL_TK_MAT_KHAU)));
+        tk.setHoTen(cursor.getString(cursor.getColumnIndexOrThrow(COL_TK_HO_TEN)));
+        tk.setLopHoc(cursor.getString(cursor.getColumnIndexOrThrow(COL_TK_LOP_HOC)));
+        tk.setKhoaVien(cursor.getString(cursor.getColumnIndexOrThrow(COL_TK_KHOA_VIEN)));
+        tk.setVaiTro(cursor.getString(cursor.getColumnIndexOrThrow(COL_TK_VAI_TRO)));
+        tk.setNgayTao(cursor.getString(cursor.getColumnIndexOrThrow(COL_TK_NGAY_TAO)));
+        return tk;
     }
 }

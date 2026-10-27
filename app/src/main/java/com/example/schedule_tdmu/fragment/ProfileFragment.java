@@ -21,9 +21,11 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.schedule_tdmu.DatabaseHelper;
 import com.example.schedule_tdmu.LoginActivity;
 import com.example.schedule_tdmu.MainActivity;
 import com.example.schedule_tdmu.R;
+import com.example.schedule_tdmu.model.TaiKhoan;
 import com.example.schedule_tdmu.utils.SharedPrefManager;
 
 import java.util.Locale;
@@ -31,6 +33,7 @@ import java.util.Locale;
 public class ProfileFragment extends Fragment {
 
     private SharedPrefManager prefManager;
+    private DatabaseHelper dbHelper;
     private TextView tvProfileName, tvProfileEmail, tvProfileMssv, tvProfileRole;
     private TextView tvProfileFaculty, tvProfileClassAndCohort;
     private TextView tvProfileGpa, tvProfileCredits, tvProfileDrl;
@@ -46,6 +49,7 @@ public class ProfileFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
         prefManager = new SharedPrefManager(requireContext());
+        dbHelper = new DatabaseHelper(requireContext());
 
         tvProfileName = view.findViewById(R.id.tv_profile_name);
         tvProfileEmail = view.findViewById(R.id.tv_profile_email);
@@ -279,6 +283,14 @@ public class ProfileFragment extends Fragment {
                     if (!name.isEmpty()) prefManager.setStudentName(name);
                     if (!mssv.isEmpty()) prefManager.setStudentMssv(mssv);
                     if (!studentClass.isEmpty()) prefManager.setStudentClass(studentClass);
+
+                    // Đồng bộ SQLite
+                    String identifier = prefManager.getStudentMssv();
+                    if (identifier.isEmpty() || "Chưa cập nhật".equals(identifier)) {
+                        identifier = prefManager.getStudentEmail();
+                    }
+                    dbHelper.updateTaiKhoanProfile(identifier, name, studentClass, prefManager.getStudentFaculty());
+
                     try {
                         float gpa = Float.parseFloat(edtGpa.getText().toString().trim());
                         prefManager.setStudentGpa(Math.min(4.0f, Math.max(0f, gpa)));
@@ -314,21 +326,74 @@ public class ProfileFragment extends Fragment {
         container.addView(edtOldPass);
 
         EditText edtNewPass = new EditText(requireContext());
-        edtNewPass.setHint("Mật khẩu mới");
+        edtNewPass.setHint("Mật khẩu mới (ít nhất 4 ký tự)");
         edtNewPass.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         container.addView(edtNewPass);
 
-        new AlertDialog.Builder(requireContext())
+        EditText edtConfirmPass = new EditText(requireContext());
+        edtConfirmPass.setHint("Nhập lại mật khẩu mới");
+        edtConfirmPass.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        container.addView(edtConfirmPass);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setTitle("Đổi mật khẩu tài khoản")
                 .setView(container)
-                .setPositiveButton("Cập nhật", (dialog, which) -> {
-                    if (edtNewPass.getText().toString().trim().length() < 4) {
-                        Toast.makeText(requireContext(), "Mật khẩu mới cần ít nhất 4 ký tự", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(requireContext(), "Đổi mật khẩu thành công", Toast.LENGTH_SHORT).show();
-                    }
-                })
+                .setPositiveButton("Cập nhật", null)
                 .setNegativeButton("Hủy", null)
-                .show();
+                .create();
+
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String oldPass = edtOldPass.getText().toString().trim();
+            String newPass = edtNewPass.getText().toString().trim();
+            String confirmPass = edtConfirmPass.getText().toString().trim();
+
+            if (oldPass.isEmpty()) {
+                edtOldPass.setError("Vui lòng nhập mật khẩu hiện tại");
+                edtOldPass.requestFocus();
+                return;
+            }
+
+            String identifier = prefManager.getStudentMssv();
+            if (identifier.isEmpty() || "Chưa cập nhật".equals(identifier)) {
+                identifier = prefManager.getStudentEmail();
+            }
+
+            TaiKhoan verified = dbHelper.authenticateUser(identifier, oldPass);
+            if (verified == null) {
+                verified = dbHelper.authenticateUser(prefManager.getStudentEmail(), oldPass);
+            }
+
+            if (verified == null) {
+                edtOldPass.setError("Mật khẩu hiện tại không chính xác!");
+                edtOldPass.requestFocus();
+                return;
+            }
+
+            if (newPass.length() < 4) {
+                edtNewPass.setError("Mật khẩu mới cần ít nhất 4 ký tự");
+                edtNewPass.requestFocus();
+                return;
+            }
+
+            if (!newPass.equals(confirmPass)) {
+                edtConfirmPass.setError("Mật khẩu xác nhận không trùng khớp");
+                edtConfirmPass.requestFocus();
+                return;
+            }
+
+            boolean updated = dbHelper.updatePassword(identifier, newPass);
+            if (!updated) {
+                updated = dbHelper.updatePassword(prefManager.getStudentEmail(), newPass);
+            }
+
+            if (updated) {
+                Toast.makeText(requireContext(), "Đổi mật khẩu thành công!", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            } else {
+                Toast.makeText(requireContext(), "Không thể cập nhật mật khẩu. Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
